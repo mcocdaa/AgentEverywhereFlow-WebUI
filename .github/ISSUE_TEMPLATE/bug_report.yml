@@ -1,0 +1,42 @@
+name: 🐛 Bug Report
+description: Create a report to help us fix a bug or UI rendering defect
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please provide as much relevant information as possible.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the behavior.
+      placeholder: |
+        1. Start `aef serve` backend.
+        2. Launch WebUI with `pnpm dev`.
+        3. Create a session targeting ...
+        4. See error ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, Node version, OS, etc.
+      placeholder: |
+        - Browser: Chrome 128 / Edge / Firefox / Safari
+        - OS: Ubuntu 24.04 / Windows 11 / macOS 15
+        - Node: v22.x / v20.x
+        - Backend: aef v0.1.5
+    validations:
+      required: true

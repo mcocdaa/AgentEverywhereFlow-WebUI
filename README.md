@@ -1,8 +1,17 @@
-# AgentEverywhereFlow WebUI (AEF Studio)
+<div align="center">
 
-<p align="center">
-  <b>Universal, Modern, Viewport-Isolated Web Console for Embodied Desktop Agents</b>
-</p>
+# 🌐 AgentEverywhereFlow WebUI (`AEF Studio`)
+
+**Universal, Modern, Viewport-Isolated Web Console for Embodied Desktop Agents**
+
+[![Family: *Flow](https://img.shields.io/badge/family-*Flow-8A2BE2.svg)](https://github.com/mcocdaa)
+[![CI Status](https://github.com/mcocdaa/AgentEverywhereFlow-WebUI/actions/workflows/ci.yml/badge.svg)](https://github.com/mcocdaa/AgentEverywhereFlow-WebUI/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Framework: React 19](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=black)](package.json)
+[![Styling: Tailwind v4](https://img.shields.io/badge/Tailwind-v4-38B2AC.svg?logo=tailwindcss&logoColor=white)](package.json)
+[![Companion: AgentEverywhereFlow](https://img.shields.io/badge/Companion-AgentEverywhereFlow-indigo.svg)](https://github.com/mcocdaa/AgentEverywhereFlow)
+
+</div>
 
 ---
 
@@ -117,4 +126,4 @@ pnpm preview
 
 ## 📄 License
 
-Apache License 2.0. Part of the `*Flow` ecosystem.
+MIT License. Part of the `*Flow` ecosystem. See [LICENSE](LICENSE) for details.
