@@ -27,7 +27,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
   const [targets, setTargets] = useState<TargetInfo[]>([])
   const [selectedTargetId, setSelectedTargetId] = useState<string>('')
   const [filterType, setFilterType] = useState<'all' | 'window' | 'display'>('all')
-  const [mode, setMode] = useState<ExecutionMode>('minimal_python')
+  const [mode, setMode] = useState<ExecutionMode>('minimal')
   const [permissionMode, setPermissionMode] = useState<PermissionMode>('auto')
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -237,9 +237,9 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
             </label>
             <div className="grid grid-cols-2 gap-3">
               <div
-                onClick={() => setMode('minimal_python')}
+                onClick={() => setMode('minimal')}
                 className={`p-3.5 rounded-xl border cursor-pointer transition ${
-                  mode === 'minimal_python'
+                  mode === 'minimal'
                     ? 'bg-indigo-600/15 border-indigo-500/60 shadow-sm'
                     : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700'
                 }`}

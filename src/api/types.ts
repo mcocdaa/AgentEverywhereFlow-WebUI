@@ -17,7 +17,7 @@ export interface TargetInfo {
   rect: Rect
 }
 
-export type ExecutionMode = 'minimal_python' | 'guarded'
+export type ExecutionMode = 'minimal' | 'guarded'
 export type PermissionMode = 'auto' | 'manual'
 export type SessionState = 'idle' | 'running' | 'waiting_approval' | 'waiting_input' | 'error' | 'closed'
 
