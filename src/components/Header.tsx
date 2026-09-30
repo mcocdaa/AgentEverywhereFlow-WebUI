@@ -4,6 +4,7 @@ import {
   Download,
   Plus,
   RotateCcw,
+  Settings,
   ShieldAlert,
   ShieldCheck,
   Tv,
@@ -23,6 +24,7 @@ interface HeaderProps {
   onTogglePermission: () => void
   onOpenExportModal: () => void
   onResetSession: () => void
+  onOpenSettingsModal: () => void
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onTogglePermission,
   onOpenExportModal,
   onResetSession,
+  onOpenSettingsModal,
 }) => {
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40 select-none">
@@ -59,23 +62,28 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Backend Connection Indicator */}
+        {/* Backend Connection Indicator & Settings Button */}
         <div className="h-6 w-px bg-slate-800 ml-1" />
-        <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 px-2.5 py-1 rounded-full border border-slate-800">
+        <button
+          onClick={onOpenSettingsModal}
+          title="Click to configure Backend Endpoint & Port"
+          className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 hover:bg-slate-950 hover:text-slate-200 px-2.5 py-1 rounded-full border border-slate-800 hover:border-slate-700 transition cursor-pointer group"
+        >
           <span
             className={`w-2 h-2 rounded-full ${
               connectionStatus === 'connected'
                 ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
                 : connectionStatus === 'connecting'
                 ? 'bg-amber-400 animate-pulse'
-                : 'bg-rose-500'
+                : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]'
             }`}
           />
           <span className="capitalize">{connectionStatus}</span>
           {backendVersion && (
             <span className="text-[10px] text-slate-500 font-mono">v{backendVersion}</span>
           )}
-        </div>
+          <Settings className="w-3 h-3 text-slate-500 group-hover:text-slate-300 ml-0.5 transition" />
+        </button>
       </div>
 
       {/* Center: Session Switcher & Target Display */}

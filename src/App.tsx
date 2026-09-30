@@ -3,6 +3,7 @@ import { api } from './api/client'
 import type { ActionMarker, PermissionMode, SessionDetail, SessionSummary } from './api/types'
 import { ApprovalGate } from './components/ApprovalGate'
 import { ChatStream } from './components/ChatStream'
+import { EndpointModal } from './components/EndpointModal'
 import { ExportModal } from './components/ExportModal'
 import { Header } from './components/Header'
 import { NewSessionModal } from './components/NewSessionModal'
@@ -20,6 +21,7 @@ export function App() {
   const [actionMarkers, setActionMarkers] = useState<ActionMarker[]>([])
   const [isNewSessionModalOpen, setIsNewSessionModalOpen] = useState(false)
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [isEndpointModalOpen, setIsEndpointModalOpen] = useState(false)
 
   // Trigger snapshot refresh
   const triggerScreenshotRefresh = useCallback(() => {
@@ -138,6 +140,7 @@ export function App() {
         onTogglePermission={handleTogglePermission}
         onOpenExportModal={() => setIsExportModalOpen(true)}
         onResetSession={handleResetSession}
+        onOpenSettingsModal={() => setIsEndpointModalOpen(true)}
       />
 
       {/* 2. Main Workspace Layout */}
@@ -194,6 +197,12 @@ export function App() {
         session={activeSession}
         events={events}
         onClose={() => setIsExportModalOpen(false)}
+      />
+
+      <EndpointModal
+        isOpen={isEndpointModalOpen}
+        onClose={() => setIsEndpointModalOpen(false)}
+        onEndpointChanged={refreshSessions}
       />
     </div>
   )
