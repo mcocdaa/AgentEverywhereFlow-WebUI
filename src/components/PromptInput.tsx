@@ -92,11 +92,11 @@ export const PromptInput: React.FC<PromptInputProps> = ({
             <button
               type="button"
               onClick={onAbort}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs shadow-md shadow-rose-600/30 transition active:scale-95 cursor-pointer animate-pulse"
+              className="w-8 h-8 rounded-xl bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-md shadow-rose-600/30 transition active:scale-95 cursor-pointer animate-pulse"
               title={t('prompt.stop')}
+              aria-label={t('prompt.stop')}
             >
               <Square className="w-3.5 h-3.5 fill-current" />
-              <span>{t('prompt.stop')}</span>
             </button>
           ) : (
             <button
