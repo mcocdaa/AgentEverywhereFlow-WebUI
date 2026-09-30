@@ -8,8 +8,10 @@ import {
   ChevronRight,
   Code2,
   Play,
+  Sparkles,
   Terminal,
   User,
+  Zap,
 } from 'lucide-react'
 import type { SessionEvent } from '../api/types'
 
@@ -42,6 +44,29 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
     setExpandedThinking((prev) => ({ ...prev, [key]: !prev[key] }))
   }
 
+  const renderToolCallBadge = (line: string, idx: number) => {
+    const clean = line.replace(/^⚡\s*/, '').replace(/^\[Tool Call\]\s*/, '').trim()
+    const [callPart, targetPart] = clean.split('──▶')
+
+    return (
+      <div
+        key={idx}
+        className="flex flex-wrap items-center gap-2 py-1 px-2.5 bg-slate-950/80 rounded-lg border border-slate-800 text-[11px] font-mono shadow-sm"
+      >
+        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1">
+          <Zap className="w-2.5 h-2.5 fill-amber-300 text-amber-300" />
+          Tool Call
+        </span>
+        <span className="text-cyan-300 font-semibold">{callPart?.trim()}</span>
+        {targetPart && (
+          <span className="text-emerald-400 text-[10px] bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+            ▶ {targetPart.trim()}
+          </span>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div
       ref={containerRef}
@@ -56,7 +81,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
           <div>
             <p className="text-sm font-semibold text-slate-200">Session Ready</p>
             <p className="text-xs text-slate-400 max-w-sm mt-1">
-              Type an instruction below (e.g. &quot;Open browser and search for documentation&quot;) to initiate the agent loop.
+              Type an instruction below (e.g. &quot;Click search bar, type query, and press Enter&quot;) to initiate the agent loop.
             </p>
           </div>
         </div>
@@ -81,9 +106,9 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
             }
 
             case 'reasoning': {
-              const thinking = ev.payload.thinking as string
+              const thinking = ((ev.payload.thinking || ev.payload.content) as string) || ''
               const isExpanded = expandedThinking[key] ?? true
-              if (!thinking) return null
+              if (!thinking.trim()) return null
 
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
@@ -93,19 +118,25 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                   <div className="flex-1 bg-slate-900 border border-purple-500/20 rounded-2xl rounded-tl-sm overflow-hidden shadow-sm">
                     <div
                       onClick={() => toggleThinking(key)}
-                      className="px-3 py-2 bg-purple-950/20 flex items-center justify-between cursor-pointer select-none border-b border-purple-500/10 hover:bg-purple-950/30"
+                      className="px-3 py-2 bg-purple-950/20 flex items-center justify-between cursor-pointer select-none border-b border-purple-500/10 hover:bg-purple-950/30 transition"
                     >
                       <div className="flex items-center gap-2 text-purple-300 font-semibold text-[11px]">
+                        <Sparkles className="w-3.5 h-3.5 text-purple-400" />
                         <span>Agent Reasoning / Chain-of-Thought</span>
                       </div>
-                      {isExpanded ? (
-                        <ChevronDown className="w-3.5 h-3.5 text-purple-400" />
-                      ) : (
-                        <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {ev.step ? (
+                          <span className="text-[10px] text-purple-400/70 font-mono">Step {ev.step}</span>
+                        ) : null}
+                        {isExpanded ? (
+                          <ChevronDown className="w-3.5 h-3.5 text-purple-400" />
+                        ) : (
+                          <ChevronRight className="w-3.5 h-3.5 text-purple-400" />
+                        )}
+                      </div>
                     </div>
                     {isExpanded && (
-                      <div className="p-3 text-[11px] text-slate-300 whitespace-pre-wrap leading-relaxed bg-slate-950/60 font-sans">
+                      <div className="p-3 text-[11px] text-slate-200 whitespace-pre-wrap leading-relaxed bg-slate-950/60 font-sans">
                         {thinking}
                       </div>
                     )}
@@ -121,24 +152,24 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
 
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
-                  <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/30 mt-0.5">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30 mt-0.5">
                     <Code2 className="w-4 h-4" />
                   </div>
-                  <div className="flex-1 bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-sm overflow-hidden shadow-sm">
-                    <div className="px-3 py-1.5 bg-slate-950 flex items-center justify-between border-b border-slate-800">
-                      <div className="flex items-center gap-1.5 text-[11px] font-mono text-indigo-300">
-                        <Play className="w-3 h-3 text-indigo-400" />
-                        <span>PROPOSED ACTION: {action || 'CodeAct'}</span>
+                  <div className="flex-1 bg-slate-900 border border-amber-500/30 rounded-2xl rounded-tl-sm overflow-hidden shadow-sm">
+                    <div className="px-3 py-1.5 bg-amber-950/20 flex items-center justify-between border-b border-amber-500/20">
+                      <div className="flex items-center gap-1.5 text-[11px] font-mono text-amber-300 font-semibold">
+                        <Play className="w-3 h-3 text-amber-400" />
+                        <span>⚡ {code ? 'Executing CodeAct Action Block' : `Action: ${action}`}</span>
                       </div>
-                      <span className="text-[10px] text-slate-500 font-mono">Step {ev.step}</span>
+                      <span className="text-[10px] text-amber-400/80 font-mono">Step {ev.step}</span>
                     </div>
 
-                    <div className="p-3 bg-slate-950/90 font-mono text-[11px] text-emerald-300 overflow-x-auto">
+                    <div className="p-3 bg-slate-950 font-mono text-[11px] text-emerald-300 overflow-x-auto leading-relaxed">
                       {code ? (
                         <pre className="whitespace-pre">{code}</pre>
                       ) : (
                         <pre className="whitespace-pre">
-                          {action}({JSON.stringify(params)})
+                          {action}({JSON.stringify(params, null, 2)})
                         </pre>
                       )}
                     </div>
@@ -152,10 +183,29 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
               const output = ev.payload.output as string | undefined
               const error = ev.payload.error as string | undefined
               const rejected = ev.payload.rejected as boolean | undefined
+              const rawToolCalls = (ev.payload.tool_calls as string[] | undefined) || []
+
+              // Also check if output itself contains tool calls
+              const toolCalls = [...rawToolCalls]
+              let remainingOutput = output || ''
+              if (!rawToolCalls.length && output && output.includes('[Tool Call]')) {
+                const lines = output.split('\n')
+                const tcLines: string[] = []
+                const otherLines: string[] = []
+                for (const l of lines) {
+                  if (l.includes('[Tool Call]')) {
+                    tcLines.push(l)
+                  } else {
+                    otherLines.push(l)
+                  }
+                }
+                toolCalls.push(...tcLines)
+                remainingOutput = otherLines.join('\n').trim()
+              }
 
               return (
-                <div key={key} className="flex gap-3 items-start ml-10 animate-in fade-in duration-150">
-                  <div className="w-5 h-5 rounded flex items-center justify-center shrink-0 mt-0.5">
+                <div key={key} className="flex gap-3 items-start ml-6 animate-in fade-in duration-150">
+                  <div className="w-6 h-6 rounded-lg bg-slate-800 flex items-center justify-center shrink-0 mt-0.5">
                     {rejected ? (
                       <AlertCircle className="w-4 h-4 text-amber-400" />
                     ) : success ? (
@@ -164,10 +214,10 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                       <AlertCircle className="w-4 h-4 text-rose-400" />
                     )}
                   </div>
-                  <div className="flex-1 text-[11px]">
+                  <div className="flex-1 space-y-2">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`font-semibold ${
+                        className={`font-semibold text-xs ${
                           rejected
                             ? 'text-amber-400'
                             : success
@@ -175,16 +225,35 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                             : 'text-rose-400'
                         }`}
                       >
-                        {rejected ? 'Action Rejected' : success ? 'Execution Succeeded' : 'Execution Failed'}
+                        {rejected
+                          ? 'Action Rejected by Operator'
+                          : success
+                          ? '✅ Actions Executed Successfully'
+                          : '❌ Execution Failed'}
                       </span>
+                      {ev.step ? (
+                        <span className="text-[10px] text-slate-500 font-mono">Step {ev.step}</span>
+                      ) : null}
                     </div>
-                    {output && (
-                      <div className="mt-1 font-mono text-[10px] text-slate-400 bg-slate-950 p-2 rounded border border-slate-800 whitespace-pre-wrap">
-                        {output}
+
+                    {/* Rich CLI-style Tool Call Items */}
+                    {toolCalls.length > 0 && (
+                      <div className="space-y-1.5 pt-0.5">
+                        {toolCalls.map((tc, idx) => renderToolCallBadge(tc, idx))}
                       </div>
                     )}
+
+                    {/* Standard text output if present */}
+                    {remainingOutput && remainingOutput.trim() && (
+                      <div className="font-mono text-[10px] text-slate-300 bg-slate-950 p-2.5 rounded-lg border border-slate-800 whitespace-pre-wrap leading-relaxed">
+                        <div className="text-[9px] text-slate-500 font-bold mb-1">STDOUT</div>
+                        {remainingOutput}
+                      </div>
+                    )}
+
                     {error && (
-                      <div className="mt-1 font-mono text-[10px] text-rose-300 bg-rose-950/30 p-2 rounded border border-rose-500/30 whitespace-pre-wrap">
+                      <div className="font-mono text-[10px] text-rose-300 bg-rose-950/40 p-2.5 rounded-lg border border-rose-500/30 whitespace-pre-wrap leading-relaxed">
+                        <div className="text-[9px] text-rose-400 font-bold mb-1">ERROR TRACE</div>
                         {error}
                       </div>
                     )}
@@ -202,10 +271,29 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                   </div>
                   <div className="flex-1 bg-emerald-950/30 border border-emerald-500/40 rounded-2xl rounded-tl-sm p-3.5 shadow-sm">
                     <div className="text-[11px] font-bold text-emerald-300 mb-1 flex items-center gap-1.5">
-                      <span>TASK COMPLETED</span>
+                      <span>🎯 TASK COMPLETED</span>
                     </div>
                     <div className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">
                       {summary || 'Goal successfully reached.'}
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+
+            case 'aborted': {
+              const msg = (ev.payload.message as string) || 'Execution aborted by operator.'
+              return (
+                <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
+                  <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30 mt-0.5">
+                    <AlertCircle className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 bg-rose-950/30 border border-rose-500/40 rounded-2xl rounded-tl-sm p-3.5 shadow-sm">
+                    <div className="text-[11px] font-bold text-rose-300 mb-1 flex items-center gap-1.5">
+                      <span>⏹ EXECUTION ABORTED (执行已终止)</span>
+                    </div>
+                    <div className="text-xs text-rose-200 leading-relaxed whitespace-pre-wrap">
+                      {msg} Current turn stopped immediately. The target window and session remain ready for your next instruction.
                     </div>
                   </div>
                 </div>

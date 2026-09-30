@@ -120,6 +120,12 @@ class ApiClient {
     })
   }
 
+  async abortSession(sessionId: string): Promise<{ status: string; message: string }> {
+    return this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/abort`, {
+      method: 'POST',
+    })
+  }
+
   async deleteSession(sessionId: string): Promise<{ status: string; message: string }> {
     return this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`, {
       method: 'DELETE',

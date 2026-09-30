@@ -44,6 +44,7 @@ export function App() {
     pendingApproval,
     isExecuting,
     sendInstruction,
+    abortExecution,
     submitApproval,
     setPermissionMode: updateSocketPermission,
     clearEvents,
@@ -180,6 +181,7 @@ export function App() {
             disabled={!activeSessionId}
             isExecuting={isExecuting}
             onSubmit={(inst, steps) => sendInstruction(inst, steps)}
+            onAbort={abortExecution}
           />
         </section>
       </main>

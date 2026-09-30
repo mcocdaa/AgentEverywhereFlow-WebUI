@@ -19,7 +19,14 @@ export interface TargetInfo {
 
 export type ExecutionMode = 'minimal' | 'guarded'
 export type PermissionMode = 'auto' | 'manual'
-export type SessionState = 'idle' | 'running' | 'waiting_approval' | 'waiting_input' | 'error' | 'closed'
+export type SessionState =
+  | 'idle'
+  | 'running'
+  | 'waiting_approval'
+  | 'waiting_input'
+  | 'aborted'
+  | 'error'
+  | 'closed'
 
 export interface PendingApproval {
   action: string
@@ -66,6 +73,7 @@ export type SessionEventType =
   | 'action_executed'
   | 'step_finished'
   | 'task_completed'
+  | 'aborted'
   | 'error'
 
 export interface SessionEvent {

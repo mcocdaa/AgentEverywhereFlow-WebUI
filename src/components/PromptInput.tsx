@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { ArrowUp, Loader2, Sparkles } from 'lucide-react'
+import { ArrowUp, Sparkles, Square } from 'lucide-react'
 
 interface PromptInputProps {
   disabled: boolean
   isExecuting: boolean
   onSubmit: (instruction: string, maxSteps: number) => void
+  onAbort?: () => void
 }
 
 const QUICK_PROMPTS = [
@@ -17,6 +18,7 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   disabled,
   isExecuting,
   onSubmit,
+  onAbort,
 }) => {
   const [text, setText] = useState('')
   const [maxSteps, setMaxSteps] = useState(50)
@@ -84,17 +86,25 @@ export const PromptInput: React.FC<PromptInputProps> = ({
             </select>
           </div>
 
-          <button
-            onClick={handleSend}
-            disabled={!text.trim() || disabled || isExecuting}
-            className="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 transition active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {isExecuting ? (
-              <Loader2 className="w-4 h-4 animate-spin text-white" />
-            ) : (
+          {isExecuting ? (
+            <button
+              type="button"
+              onClick={onAbort}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs shadow-md shadow-rose-600/30 transition active:scale-95 cursor-pointer animate-pulse"
+              title="Stop execution immediately (中断执行)"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+              <span>Stop / 中断</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleSend}
+              disabled={!text.trim() || disabled}
+              className="w-8 h-8 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 transition active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+            >
               <ArrowUp className="w-4 h-4" />
-            )}
-          </button>
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -103,8 +103,10 @@ export function useSessionSocket(
               break
             }
             case 'task_completed':
+            case 'aborted':
             case 'error': {
               setIsExecuting(false)
+              setPendingApproval(null)
               onScreenshotRefresh?.()
               break
             }
@@ -204,6 +206,23 @@ export function useSessionSocket(
     [sessionId]
   )
 
+  const abortExecution = useCallback(() => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(
+        JSON.stringify({
+          action: 'abort',
+        })
+      )
+    }
+    if (sessionId) {
+      api.abortSession(sessionId).catch((err) => {
+        console.error('Failed to abort session via REST:', err)
+      })
+    }
+    setIsExecuting(false)
+    setPendingApproval(null)
+  }, [sessionId])
+
   const clearEvents = useCallback(() => {
     setEvents([])
   }, [])
@@ -216,6 +235,7 @@ export function useSessionSocket(
     currentTurn,
     currentStep,
     sendInstruction,
+    abortExecution,
     submitApproval,
     setPermissionMode,
     clearEvents,
