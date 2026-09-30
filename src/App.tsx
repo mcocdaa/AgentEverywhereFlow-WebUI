@@ -89,6 +89,16 @@ export function App() {
       })
       .catch((err) => {
         console.error('Failed to load session details:', err)
+        setActiveSession(null)
+        setSessions((curr) => {
+          const remaining = curr.filter((s) => s.session_id !== activeSessionId)
+          if (remaining.length > 0) {
+            setActiveSessionId(remaining[0].session_id)
+          } else {
+            setActiveSessionId(null)
+          }
+          return remaining
+        })
       })
   }, [activeSessionId])
 

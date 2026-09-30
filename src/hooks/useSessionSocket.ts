@@ -116,9 +116,16 @@ export function useSessionSocket(
         }
       }
 
-      ws.onclose = () => {
+      ws.onclose = (event: CloseEvent) => {
         if (!isMountedRef.current) return
         setStatus('disconnected')
+        // Stop reconnect loop if session was rejected by server policy / does not exist
+        if (event.code === 1008 || event.code === 4404) {
+          console.warn(
+            `[AEFlow WS] Session '${sessionId}' was closed by server (code ${event.code}): ${event.reason || 'session not found'}. Stopping reconnect loop.`
+          )
+          return
+        }
         // Reconnect after 3 seconds if still mounted
         reconnectTimeoutRef.current = window.setTimeout(() => {
           if (isMountedRef.current && sessionId) {
