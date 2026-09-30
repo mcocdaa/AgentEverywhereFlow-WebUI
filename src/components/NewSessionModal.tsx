@@ -32,22 +32,37 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [refreshedNotice, setRefreshedNotice] = useState(false)
 
   const fetchTargets = useCallback(async () => {
     setLoading(true)
     setError(null)
+    const startTime = Date.now()
     try {
       const data = await api.listTargets()
       setTargets(data)
-      if (data.length > 0 && !selectedTargetId) {
-        setSelectedTargetId(data[0].target_id)
+
+      // Ensure rotation is visible for at least 350ms so user gets clear tactile feedback
+      const elapsed = Date.now() - startTime
+      if (elapsed < 350) {
+        await new Promise((r) => setTimeout(r, 350 - elapsed))
       }
+
+      // If selectedTargetId was not set, or no longer exists in newly discovered targets
+      setSelectedTargetId((curr) => {
+        if (data.length === 0) return ''
+        const exists = data.some((t) => t.target_id === curr)
+        return exists ? curr : data[0].target_id
+      })
+
+      setRefreshedNotice(true)
+      setTimeout(() => setRefreshedNotice(false), 2000)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to fetch targets')
     } finally {
       setLoading(false)
     }
-  }, [selectedTargetId])
+  }, [])
 
   useEffect(() => {
     if (isOpen) {
@@ -142,7 +157,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    Windows
+                    Windows ({targets.filter((t) => t.target_type === 'window').length})
                   </button>
                   <button
                     onClick={() => setFilterType('display')}
@@ -152,16 +167,21 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    Displays
+                    Displays ({targets.filter((t) => t.target_type === 'display').length})
                   </button>
                 </div>
+                {refreshedNotice && (
+                  <span className="text-[11px] text-emerald-400 font-medium animate-in fade-in duration-150">
+                    Updated!
+                  </span>
+                )}
                 <button
                   onClick={fetchTargets}
                   disabled={loading}
                   title="Refresh targets"
                   className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition disabled:opacity-50 cursor-pointer"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
                 </button>
               </div>
             </div>

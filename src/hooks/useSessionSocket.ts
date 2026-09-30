@@ -103,11 +103,19 @@ export function useSessionSocket(
               break
             }
             case 'task_completed':
-            case 'aborted':
-            case 'error': {
+            case 'aborted': {
               setIsExecuting(false)
               setPendingApproval(null)
               onScreenshotRefresh?.()
+              break
+            }
+            case 'error': {
+              setIsExecuting(false)
+              setPendingApproval(null)
+              const errMsg = String(ev.payload?.error || '')
+              if (!errMsg.toLowerCase().includes('not found')) {
+                onScreenshotRefresh?.()
+              }
               break
             }
           }
