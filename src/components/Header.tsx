@@ -80,10 +80,10 @@ export const Header: React.FC<HeaderProps> = ({
   }, [backendOnline, activeSessionId, connectionStatus])
 
   return (
-    <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40 select-none">
+    <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 grid grid-cols-[1fr_auto_1fr] items-center sticky top-0 z-40 select-none">
       {/* Brand & Status */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-4 justify-self-start min-w-0">
+        <div className="flex items-center gap-2.5 shrink-0">
           <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-indigo-600 via-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 ring-1 ring-white/20">
             <Tv className="w-5 h-5 text-white" />
           </div>
@@ -101,28 +101,28 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Backend Connection Indicator & Settings Button */}
-        <div className="h-6 w-px bg-slate-800 ml-1" />
+        <div className="h-6 w-px bg-slate-800 ml-1 shrink-0" />
         <button
           onClick={onOpenSettingsModal}
           title={statusDisplay.tooltip}
-          className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 hover:bg-slate-950 hover:text-slate-200 px-2.5 py-1 rounded-full border border-slate-800 hover:border-slate-700 transition cursor-pointer group"
+          className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 hover:bg-slate-950 hover:text-slate-200 px-2.5 py-1 rounded-full border border-slate-800 hover:border-slate-700 transition cursor-pointer group shrink-0"
         >
-          <span className={`w-2 h-2 rounded-full ${statusDisplay.colorClass}`} />
-          <span className="capitalize">{statusDisplay.label}</span>
+          <span className={`w-2 h-2 rounded-full shrink-0 ${statusDisplay.colorClass}`} />
+          <span className="capitalize inline-block min-w-[72px] text-left font-medium">{statusDisplay.label}</span>
           {backendVersion && (
             <span className="text-[10px] text-slate-500 font-mono">v{backendVersion}</span>
           )}
-          <Settings className="w-3 h-3 text-slate-500 group-hover:text-slate-300 ml-0.5 transition" />
+          <Settings className="w-3 h-3 text-slate-500 group-hover:text-slate-300 ml-0.5 transition shrink-0" />
         </button>
       </div>
 
       {/* Center: Session Switcher & Target Display */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 justify-self-center">
         <div className="relative">
           <select
             value={activeSessionId || ''}
             onChange={(e) => onSelectSession(e.target.value)}
-            className="appearance-none bg-slate-950/80 hover:bg-slate-950 text-slate-200 text-xs font-medium pl-3 pr-8 py-1.5 rounded-lg border border-slate-700/80 focus:border-indigo-500 focus:outline-none cursor-pointer transition shadow-inner min-w-[200px]"
+            className="appearance-none bg-slate-950/80 hover:bg-slate-950 text-slate-200 text-xs font-medium pl-3 pr-8 py-1.5 rounded-lg border border-slate-700/80 focus:border-indigo-500 focus:outline-none cursor-pointer transition shadow-inner min-w-[200px] max-w-[280px] truncate"
           >
             {sessions.length === 0 ? (
               <option value="" disabled>
@@ -159,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Right Controls: Permission Mode & Export */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 justify-self-end">
         {/* Permission Mode Toggle Button */}
         <button
           onClick={onTogglePermission}
