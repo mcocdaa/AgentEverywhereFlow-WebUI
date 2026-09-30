@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { api } from '../api/client'
 import type { ExecutionMode, PermissionMode, TargetInfo } from '../api/types'
+import { useLanguage } from '../i18n/LanguageContext'
 
 interface NewSessionModalProps {
   isOpen: boolean
@@ -24,6 +25,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
   onClose,
   onSessionCreated,
 }) => {
+  const { t } = useLanguage()
   const [targets, setTargets] = useState<TargetInfo[]>([])
   const [selectedTargetId, setSelectedTargetId] = useState<string>('')
   const [filterType, setFilterType] = useState<'all' | 'window' | 'display'>('all')
@@ -79,7 +81,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
 
   const handleCreate = async () => {
     if (!selectedTargetId) {
-      setError('Please select a target window or screen.')
+      setError(t('newSession.selectTargetError'))
       return
     }
     setSubmitting(true)
@@ -109,9 +111,9 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white">Create New Agent Session</h2>
+              <h2 className="text-base font-semibold text-white">{t('newSession.title')}</h2>
               <p className="text-xs text-slate-400">
-                Select target screen/window for strict viewport isolation
+                {t('newSession.subtitle')}
               </p>
             </div>
           </div>
@@ -135,7 +137,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                1. Select Capture Target
+                {t('newSession.selectTarget')}
               </label>
               <div className="flex items-center gap-2">
                 <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-xs">
@@ -147,7 +149,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    All ({targets.length})
+                    {t('newSession.all')} ({targets.length})
                   </button>
                   <button
                     onClick={() => setFilterType('window')}
@@ -157,7 +159,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    Windows ({targets.filter((t) => t.target_type === 'window').length})
+                    {t('newSession.windows')} ({targets.filter((t) => t.target_type === 'window').length})
                   </button>
                   <button
                     onClick={() => setFilterType('display')}
@@ -167,18 +169,18 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         : 'text-slate-400 hover:text-slate-200'
                     }`}
                   >
-                    Displays ({targets.filter((t) => t.target_type === 'display').length})
+                    {t('newSession.displays')} ({targets.filter((t) => t.target_type === 'display').length})
                   </button>
                 </div>
                 {refreshedNotice && (
                   <span className="text-[11px] text-emerald-400 font-medium animate-in fade-in duration-150">
-                    Updated!
+                    {t('newSession.updated')}
                   </span>
                 )}
                 <button
                   onClick={fetchTargets}
                   disabled={loading}
-                  title="Refresh targets"
+                  title={t('newSession.refreshTargets')}
                   className="p-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-white transition disabled:opacity-50 cursor-pointer"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-indigo-400' : ''}`} />
@@ -190,7 +192,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
             <div className="grid grid-cols-1 gap-2 max-h-52 overflow-y-auto pr-1">
               {filteredTargets.length === 0 ? (
                 <div className="text-center py-8 text-xs text-slate-500 bg-slate-950/40 rounded-xl border border-slate-800/80">
-                  {loading ? 'Discovering active windows and displays...' : 'No targets found.'}
+                  {loading ? t('newSession.discovering') : t('newSession.noTargets')}
                 </div>
               ) : (
                 filteredTargets.map((target) => {
@@ -221,10 +223,10 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         </div>
                         <div className="truncate">
                           <div className="text-xs font-semibold text-slate-200 truncate flex items-center gap-2">
-                            <span>{target.title || 'Untitled Target'}</span>
+                            <span>{target.title || t('newSession.untitledTarget')}</span>
                             {target.is_minimized && (
                               <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 rounded">
-                                Minimized
+                                {t('newSession.minimized')}
                               </span>
                             )}
                           </div>
@@ -253,7 +255,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
           {/* 2. Execution Mode Selection */}
           <div>
             <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
-              2. Execution Engine Mode
+              {t('newSession.executionMode')}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <div
@@ -266,11 +268,10 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <Code2 className="w-4 h-4 text-indigo-400" />
-                  <span className="text-xs font-semibold text-white">Minimal Mode (CodeAct)</span>
+                  <span className="text-xs font-semibold text-white">{t('newSession.modeMinimal')}</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Executes Python REPL code blocks (<code className="text-indigo-300">click()</code>,{' '}
-                  <code className="text-indigo-300">type_text()</code>) directly in isolated runtime.
+                  {t('newSession.modeMinimalDesc')}
                 </p>
               </div>
 
@@ -284,10 +285,10 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <Layers className="w-4 h-4 text-purple-400" />
-                  <span className="text-xs font-semibold text-white">Guarded Mode (JSON Tools)</span>
+                  <span className="text-xs font-semibold text-white">{t('newSession.modeGuarded')}</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Structured JSON function calls parsed with strict Pydantic schemas and security checks.
+                  {t('newSession.modeGuardedDesc')}
                 </p>
               </div>
             </div>
@@ -296,7 +297,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
           {/* 3. Permission Gate Mode */}
           <div>
             <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
-              3. Security & Permission Gate
+              {t('newSession.permissionMode')}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <div
@@ -309,10 +310,10 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span className="text-xs font-semibold text-white">Autonomous (Auto)</span>
+                  <span className="text-xs font-semibold text-white">{t('newSession.permAuto')}</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Runs full multi-step loop without pausing for manual approvals.
+                  {t('newSession.permAutoDesc')}
                 </p>
               </div>
 
@@ -326,10 +327,10 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
               >
                 <div className="flex items-center gap-2 mb-1.5">
                   <ShieldAlert className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-semibold text-white">Manual Approval Gate</span>
+                  <span className="text-xs font-semibold text-white">{t('newSession.permManual')}</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Pauses on every keyboard/mouse action for human confirmation in WebUI.
+                  {t('newSession.permManualDesc')}
                 </p>
               </div>
             </div>
@@ -342,7 +343,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
-            Cancel
+            {t('newSession.cancel')}
           </button>
           <button
             onClick={handleCreate}
@@ -352,10 +353,10 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
             {submitting ? (
               <>
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Binding Session...</span>
+                <span>{t('newSession.bindingSession')}</span>
               </>
             ) : (
-              <span>Launch Session</span>
+              <span>{t('newSession.launchSession')}</span>
             )}
           </button>
         </div>

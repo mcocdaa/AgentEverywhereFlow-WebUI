@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Check, ShieldAlert, X } from 'lucide-react'
 import type { PendingApproval } from '../api/types'
+import { useLanguage } from '../i18n/LanguageContext'
 
 interface ApprovalGateProps {
   pending: PendingApproval | null
@@ -13,6 +14,7 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
   onApprove,
   onReject,
 }) => {
+  const { t } = useLanguage()
   const [rejectReason, setRejectReason] = useState('')
   const [showReasonInput, setShowReasonInput] = useState(false)
 
@@ -32,16 +34,16 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
         </div>
         <div>
           <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-            Operator Approval Required
+            {t('approval.title')}
           </h4>
-          <p className="text-[11px] text-slate-400">Agent proposed OS input injection</p>
+          <p className="text-[11px] text-slate-400">{t('approval.subtitle')}</p>
         </div>
       </div>
 
       {/* Action Details */}
       <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 mb-3 space-y-1.5 font-mono text-xs">
         <div className="flex justify-between items-center text-slate-400 text-[11px]">
-          <span>ACTION:</span>
+          <span>{t('approval.action')}</span>
           <span className="text-amber-400 font-bold uppercase">{pending.action}</span>
         </div>
 
@@ -64,7 +66,7 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
           type="text"
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
-          placeholder="Optional reason for agent correction..."
+          placeholder={t('approval.placeholder')}
           className="w-full mb-3 px-3 py-1.5 text-xs bg-slate-950 border border-slate-700 rounded-lg text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-amber-500"
           autoFocus
         />
@@ -77,7 +79,7 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
           className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-600/30 transition cursor-pointer"
         >
           <Check className="w-3.5 h-3.5" />
-          <span>Approve Action</span>
+          <span>{t('approval.approve')}</span>
         </button>
 
         {showReasonInput ? (
@@ -86,14 +88,14 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
             className="flex-1 py-2 px-3 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-lg shadow-rose-600/30 transition cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
-            <span>Confirm Reject</span>
+            <span>{t('approval.confirmReject')}</span>
           </button>
         ) : (
           <button
             onClick={() => setShowReasonInput(true)}
             className="py-2 px-3 bg-slate-800 hover:bg-rose-600/30 text-slate-300 hover:text-rose-300 font-semibold text-xs rounded-xl border border-slate-700 transition cursor-pointer"
           >
-            Reject...
+            {t('approval.reject')}
           </button>
         )}
       </div>

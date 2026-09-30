@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { api } from '../api/client'
 import type { ActionMarker, SessionDetail } from '../api/types'
+import { useLanguage } from '../i18n/LanguageContext'
 
 interface ViewportMonitorProps {
   session: SessionDetail | null
@@ -25,6 +26,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
   onManualRefresh,
   onOpenNewSessionModal,
 }) => {
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(false)
@@ -119,7 +121,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 w-3 h-3"
             />
-            <span className="text-[11px]">Auto (2s)</span>
+            <span className="text-[11px]">{t('viewport.autoRefresh')}</span>
           </label>
 
           {/* Manual Refresh */}
@@ -128,7 +130,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
               setLoading(true)
               onManualRefresh()
             }}
-            title="Refresh viewport snapshot"
+            title={t('viewport.manualRefresh')}
             className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition cursor-pointer"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
@@ -137,7 +139,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
           {/* Fullscreen Toggle */}
           <button
             onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen Viewport'}
+            title={isFullscreen ? t('viewport.exitFullscreen') : t('viewport.fullscreen')}
             className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition cursor-pointer"
           >
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
@@ -153,9 +155,9 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
               <Monitor className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-slate-200">No Target Window Bound</p>
+              <p className="text-xs font-semibold text-slate-200">{t('viewport.noTarget')}</p>
               <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
-                Select a physical display or application window to start viewing and interacting.
+                {t('viewport.noTargetDesc')}
               </p>
             </div>
             {onOpenNewSessionModal && (
@@ -164,7 +166,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition active:scale-95 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Select Target Window (+ New Session)</span>
+                <span>{t('viewport.selectTarget')}</span>
               </button>
             )}
           </div>

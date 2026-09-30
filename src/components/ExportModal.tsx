@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Check, Copy, Download, FileCode, FileJson, FileText, X } from 'lucide-react'
 import type { SessionDetail, SessionEvent } from '../api/types'
+import { useLanguage } from '../i18n/LanguageContext'
 
 interface ExportModalProps {
   isOpen: boolean
@@ -15,6 +16,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   events,
   onClose,
 }) => {
+  const { t } = useLanguage()
   const [format, setFormat] = useState<'json' | 'python' | 'markdown'>('python')
   const [copied, setCopied] = useState(false)
   const [content, setContent] = useState('')
@@ -164,10 +166,8 @@ if __name__ == "__main__":
               <Download className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white">Export Workflow & Trace</h3>
-              <p className="text-xs text-slate-400">
-                Export session actions as executable automation or audit report
-              </p>
+              <h3 className="text-base font-semibold text-white">{t('export.title')}</h3>
+              <p className="text-xs text-slate-400">{t('export.subtitle')}</p>
             </div>
           </div>
           <button
@@ -189,7 +189,7 @@ if __name__ == "__main__":
             }`}
           >
             <FileCode className="w-3.5 h-3.5" />
-            <span>Python Script (.py)</span>
+            <span>{t('export.tabPython')}</span>
           </button>
 
           <button
@@ -201,7 +201,7 @@ if __name__ == "__main__":
             }`}
           >
             <FileText className="w-3.5 h-3.5" />
-            <span>Audit Report (.md)</span>
+            <span>{t('export.tabMarkdown')}</span>
           </button>
 
           <button
@@ -236,7 +236,7 @@ if __name__ == "__main__":
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Copied!' : 'Copy Code'}</span>
+              <span>{copied ? t('export.copied') : t('export.copy')}</span>
             </button>
 
             <button
@@ -244,7 +244,7 @@ if __name__ == "__main__":
               className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Download File</span>
+              <span>{t('export.download')}</span>
             </button>
           </div>
         </div>

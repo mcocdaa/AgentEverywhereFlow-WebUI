@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { CheckCircle2, Globe, RefreshCw, Server, X, AlertCircle } from 'lucide-react'
 import { api } from '../api/client'
+import { useLanguage } from '../i18n/LanguageContext'
 
 interface EndpointModalProps {
   isOpen: boolean
@@ -13,6 +14,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
   onClose,
   onEndpointChanged,
 }) => {
+  const { t } = useLanguage()
   const currentBase = api.getBaseUrl()
   const [url, setUrl] = useState(currentBase || '')
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
@@ -32,11 +34,13 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
       }
       const data = await res.json()
       setTestStatus('success')
-      setTestMessage(`Connected to AEFlow v${data.version || '0.1.x'} successfully!`)
+      setTestMessage(
+        t('endpoint.connected').replace('{version}', data.version || '0.1.x')
+      )
     } catch (err: unknown) {
       setTestStatus('failed')
       const msg = err instanceof Error ? err.message : String(err)
-      setTestMessage(`Connection failed: ${msg}. Make sure 'aef serve' is running.`)
+      setTestMessage(t('endpoint.failed').replace('{msg}', msg))
     }
   }
 
@@ -62,8 +66,8 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
               <Server className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white">Backend Endpoint Settings</h2>
-              <p className="text-xs text-slate-400">Configure connection to AEFlow daemon</p>
+              <h2 className="text-base font-semibold text-white">{t('endpoint.title')}</h2>
+              <p className="text-xs text-slate-400">{t('endpoint.subtitle')}</p>
             </div>
           </div>
           <button
@@ -78,7 +82,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
         <div className="p-6 space-y-5">
           <div>
             <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-              Daemon API URL
+              {t('endpoint.apiUrl')}
             </label>
             <div className="relative">
               <input
@@ -98,17 +102,17 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
                 className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition disabled:opacity-50 cursor-pointer flex items-center gap-1.5"
               >
                 <RefreshCw className={`w-3 h-3 ${testStatus === 'testing' ? 'animate-spin' : ''}`} />
-                <span>Test</span>
+                <span>{t('endpoint.test')}</span>
               </button>
             </div>
             <p className="text-[11px] text-slate-500 mt-1.5">
-              Default is <code className="text-indigo-400 font-mono">http://127.0.0.1:8000</code>. If port 8000 is occupied, set to the port used by <code className="text-indigo-400 font-mono">aef serve --port &lt;port&gt;</code>.
+              {t('endpoint.apiDesc')}
             </p>
           </div>
 
           {/* Quick Presets */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 mb-2">Quick Presets</label>
+            <label className="block text-xs font-semibold text-slate-400 mb-2">{t('endpoint.quickPresets')}</label>
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
@@ -165,7 +169,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
                 <RefreshCw className="w-4 h-4 text-slate-400 animate-spin shrink-0 mt-0.5" />
               )}
               <div className="leading-relaxed">
-                {testStatus === 'testing' ? 'Testing connectivity to endpoint...' : testMessage}
+                {testStatus === 'testing' ? t('endpoint.testing') : testMessage}
               </div>
             </div>
           )}
@@ -179,7 +183,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
             className="text-xs text-slate-400 hover:text-slate-200 transition cursor-pointer flex items-center gap-1"
           >
             <Globe className="w-3.5 h-3.5" />
-            <span>Reset to Auto Proxy</span>
+            <span>{t('endpoint.resetAuto')}</span>
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -187,14 +191,14 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
             >
-              Cancel
+              {t('endpoint.cancel')}
             </button>
             <button
               type="button"
               onClick={handleSave}
               className="px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/30 transition cursor-pointer"
             >
-              Save & Apply
+              {t('endpoint.save')}
             </button>
           </div>
         </div>
