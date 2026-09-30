@@ -11,8 +11,8 @@ import type {
 } from './types'
 
 const DEFAULT_BASE_URL =
-  typeof window !== 'undefined' && window.location.port === '5173'
-    ? '' // use vite proxy
+  typeof window !== 'undefined'
+    ? '' // In browser (direct serve on any port, or vite dev proxy), use current host
     : 'http://127.0.0.1:8000'
 
 class ApiClient {
