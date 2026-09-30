@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import {
   ChevronDown,
   Download,
@@ -16,6 +16,7 @@ interface HeaderProps {
   sessions: SessionSummary[]
   activeSession: SessionDetail | null
   activeSessionId: string | null
+  backendOnline: boolean
   connectionStatus: ConnectionStatus
   backendVersion: string | null
   permissionMode: PermissionMode
@@ -31,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   sessions,
   activeSession,
   activeSessionId,
+  backendOnline,
   connectionStatus,
   backendVersion,
   permissionMode,
@@ -41,6 +43,42 @@ export const Header: React.FC<HeaderProps> = ({
   onResetSession,
   onOpenSettingsModal,
 }) => {
+  const statusDisplay = useMemo(() => {
+    if (!backendOnline) {
+      return {
+        label: 'Offline',
+        colorClass: 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]',
+        tooltip: 'Backend daemon offline. Click to check port or endpoint settings.',
+      }
+    }
+    if (!activeSessionId) {
+      return {
+        label: 'Online',
+        colorClass: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]',
+        tooltip: 'Backend daemon is online. Click "+ New Session" to bind a target window.',
+      }
+    }
+    if (connectionStatus === 'connected') {
+      return {
+        label: 'Live',
+        colorClass: 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]',
+        tooltip: 'Session stream connected.',
+      }
+    }
+    if (connectionStatus === 'connecting') {
+      return {
+        label: 'Syncing',
+        colorClass: 'bg-amber-400 animate-pulse',
+        tooltip: 'Connecting session stream...',
+      }
+    }
+    return {
+      label: 'Reconnecting',
+      colorClass: 'bg-amber-500',
+      tooltip: 'Session stream reconnecting...',
+    }
+  }, [backendOnline, activeSessionId, connectionStatus])
+
   return (
     <header className="h-16 border-b border-slate-800 bg-slate-900/80 backdrop-blur-md px-6 flex items-center justify-between sticky top-0 z-40 select-none">
       {/* Brand & Status */}
@@ -66,19 +104,11 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="h-6 w-px bg-slate-800 ml-1" />
         <button
           onClick={onOpenSettingsModal}
-          title="Click to configure Backend Endpoint & Port"
+          title={statusDisplay.tooltip}
           className="flex items-center gap-2 text-xs text-slate-400 bg-slate-950/60 hover:bg-slate-950 hover:text-slate-200 px-2.5 py-1 rounded-full border border-slate-800 hover:border-slate-700 transition cursor-pointer group"
         >
-          <span
-            className={`w-2 h-2 rounded-full ${
-              connectionStatus === 'connected'
-                ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]'
-                : connectionStatus === 'connecting'
-                ? 'bg-amber-400 animate-pulse'
-                : 'bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)]'
-            }`}
-          />
-          <span className="capitalize">{connectionStatus}</span>
+          <span className={`w-2 h-2 rounded-full ${statusDisplay.colorClass}`} />
+          <span className="capitalize">{statusDisplay.label}</span>
           {backendVersion && (
             <span className="text-[10px] text-slate-500 font-mono">v{backendVersion}</span>
           )}

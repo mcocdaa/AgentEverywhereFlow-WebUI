@@ -4,6 +4,7 @@ import {
   Maximize2,
   Minimize2,
   Monitor,
+  Plus,
   RefreshCw,
 } from 'lucide-react'
 import { api } from '../api/client'
@@ -14,6 +15,7 @@ interface ViewportMonitorProps {
   markers: ActionMarker[]
   refreshTrigger: number
   onManualRefresh: () => void
+  onOpenNewSessionModal?: () => void
 }
 
 export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
@@ -21,6 +23,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
   markers,
   refreshTrigger,
   onManualRefresh,
+  onOpenNewSessionModal,
 }) => {
   const [loading, setLoading] = useState(false)
   const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null)
@@ -145,16 +148,25 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
       {/* Screen Frame Content Area */}
       <div className="relative flex-1 bg-slate-950 flex items-center justify-center overflow-hidden p-2">
         {!session ? (
-          <div className="text-center p-8 space-y-3">
-            <div className="w-12 h-12 rounded-2xl bg-slate-800/80 text-slate-500 flex items-center justify-center mx-auto border border-slate-700/50">
+          <div className="text-center p-8 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-slate-800/80 text-slate-400 flex items-center justify-center mx-auto border border-slate-700/50">
               <Monitor className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs font-medium text-slate-300">No Target Bound</p>
-              <p className="text-[11px] text-slate-500">
-                Create or select a session to stream isolated viewport.
+              <p className="text-xs font-semibold text-slate-200">No Target Window Bound</p>
+              <p className="text-[11px] text-slate-400 mt-1 max-w-xs mx-auto">
+                Select a physical display or application window to start viewing and interacting.
               </p>
             </div>
+            {onOpenNewSessionModal && (
+              <button
+                onClick={onOpenNewSessionModal}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/30 transition active:scale-95 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Select Target Window (+ New Session)</span>
+              </button>
+            )}
           </div>
         ) : imgUrl ? (
           <div className="relative max-w-full max-h-full flex items-center justify-center select-none group">

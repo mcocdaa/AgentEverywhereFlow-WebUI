@@ -16,6 +16,7 @@ export function App() {
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [activeSession, setActiveSession] = useState<SessionDetail | null>(null)
   const [backendVersion, setBackendVersion] = useState<string | null>(null)
+  const [backendOnline, setBackendOnline] = useState<boolean>(false)
   const [permissionMode, setPermissionMode] = useState<PermissionMode>('auto')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [actionMarkers, setActionMarkers] = useState<ActionMarker[]>([])
@@ -53,6 +54,7 @@ export function App() {
     try {
       const health = await api.checkHealth()
       setBackendVersion(health.version)
+      setBackendOnline(true)
 
       const sessionList = await api.listSessions()
       setSessions(sessionList)
@@ -62,6 +64,8 @@ export function App() {
       }
     } catch (e) {
       console.warn('Backend not available yet:', e)
+      setBackendOnline(false)
+      setBackendVersion(null)
     }
   }, [activeSessionId])
 
@@ -132,6 +136,7 @@ export function App() {
         sessions={sessions}
         activeSession={activeSession}
         activeSessionId={activeSessionId}
+        backendOnline={backendOnline}
         connectionStatus={connectionStatus}
         backendVersion={backendVersion}
         permissionMode={permissionMode}
@@ -152,6 +157,7 @@ export function App() {
             markers={actionMarkers}
             refreshTrigger={refreshTrigger}
             onManualRefresh={triggerScreenshotRefresh}
+            onOpenNewSessionModal={() => setIsNewSessionModalOpen(true)}
           />
         </section>
 
