@@ -30,6 +30,22 @@ export const translations = {
     'header.langZh': '中文',
     'header.langEn': 'EN',
 
+    // Sessions Dropdown & Management
+    'sessions.search': 'Search sessions by title, target, or ID...',
+    'sessions.noMatches': 'No matching sessions found',
+    'sessions.rename': 'Rename session',
+    'sessions.delete': 'Delete session',
+    'sessions.deleteConfirm': 'Delete this session? Recorded trajectory will be removed.',
+    'sessions.active': 'Active',
+    'sessions.total': 'Total {count} sessions',
+    'sessions.new': 'New Session',
+    'sessions.turns': 'turns',
+    'sessions.steps': 'steps',
+    'sessions.save': 'Save',
+    'sessions.cancel': 'Cancel',
+    'sessions.editTitle': 'Edit title',
+    'sessions.confirmDelete': 'Confirm Delete',
+
     // Viewport Monitor
     'viewport.title': 'Viewport Monitor',
     'viewport.noTarget': 'No Target Window Bound',
@@ -161,6 +177,22 @@ export const translations = {
     'header.language': '语言',
     'header.langZh': '中文',
     'header.langEn': 'EN',
+
+    // Sessions Dropdown & Management
+    'sessions.search': '搜索会话名称、目标或 ID...',
+    'sessions.noMatches': '未找到匹配的会话',
+    'sessions.rename': '修改会话名称',
+    'sessions.delete': '删除会话',
+    'sessions.deleteConfirm': '确定要彻底删除该会话吗？已记录的执行历史将被清除。',
+    'sessions.active': '当前',
+    'sessions.total': '共 {count} 个会话',
+    'sessions.new': '新建会话',
+    'sessions.turns': '轮次',
+    'sessions.steps': '步',
+    'sessions.save': '保存',
+    'sessions.cancel': '取消',
+    'sessions.editTitle': '编辑标题',
+    'sessions.confirmDelete': '确认删除',
 
     // Viewport Monitor
     'viewport.title': '视口隔离监视器',

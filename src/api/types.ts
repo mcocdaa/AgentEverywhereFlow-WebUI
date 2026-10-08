@@ -40,15 +40,18 @@ export interface SessionSummary {
   session_id: string
   target_id: string
   title: string
+  target_title?: string
   mode: ExecutionMode
   permission_mode: PermissionMode
   state: SessionState
   turn_count: number
   total_steps: number
+  created_at?: number
 }
 
 export interface SessionDetail {
   session_id: string
+  title?: string
   target: {
     target_id: string
     title: string

@@ -140,6 +140,37 @@ export function App() {
     }
   }
 
+  // Handle session deletion
+  const handleDeleteSession = async (id: string) => {
+    try {
+      await api.deleteSession(id)
+      setSessions((curr) => {
+        const remaining = curr.filter((s) => s.session_id !== id)
+        if (activeSessionId === id) {
+          setActiveSessionId(remaining.length > 0 ? remaining[0].session_id : null)
+        }
+        return remaining
+      })
+    } catch (e) {
+      console.error('Failed to delete session:', e)
+    }
+  }
+
+  // Handle session title rename
+  const handleRenameSession = async (id: string, newTitle: string) => {
+    try {
+      await api.updateSession(id, { title: newTitle })
+      setSessions((curr) =>
+        curr.map((s) => (s.session_id === id ? { ...s, title: newTitle } : s))
+      )
+      if (activeSession && activeSession.session_id === id) {
+        setActiveSession({ ...activeSession, title: newTitle })
+      }
+    } catch (e) {
+      console.error('Failed to rename session:', e)
+    }
+  }
+
   return (
     <div className="flex flex-col h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* 1. Header Bar */}
@@ -157,6 +188,8 @@ export function App() {
         onOpenExportModal={() => setIsExportModalOpen(true)}
         onResetSession={handleResetSession}
         onOpenSettingsModal={() => setIsEndpointModalOpen(true)}
+        onDeleteSession={handleDeleteSession}
+        onRenameSession={handleRenameSession}
       />
 
       {/* 2. Main Workspace Layout */}

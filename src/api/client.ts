@@ -126,6 +126,16 @@ class ApiClient {
     })
   }
 
+  async updateSession(
+    sessionId: string,
+    data: { title?: string }
+  ): Promise<{ status: string; session_id: string; title: string }> {
+    return this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
+  }
+
   async deleteSession(sessionId: string): Promise<{ status: string; message: string }> {
     return this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}`, {
       method: 'DELETE',

@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react'
 import {
-  ChevronDown,
   Download,
   Globe,
   Plus,
@@ -13,6 +12,7 @@ import {
 import type { PermissionMode, SessionDetail, SessionSummary } from '../api/types'
 import type { ConnectionStatus } from '../hooks/useSessionSocket'
 import { useLanguage } from '../i18n/LanguageContext'
+import { SessionSelector } from './SessionSelector'
 
 interface HeaderProps {
   sessions: SessionSummary[]
@@ -28,6 +28,8 @@ interface HeaderProps {
   onOpenExportModal: () => void
   onResetSession: () => void
   onOpenSettingsModal: () => void
+  onDeleteSession: (sessionId: string) => Promise<void>
+  onRenameSession: (sessionId: string, newTitle: string) => Promise<void>
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -44,6 +46,8 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenExportModal,
   onResetSession,
   onOpenSettingsModal,
+  onDeleteSession,
+  onRenameSession,
 }) => {
   const { t, language, toggleLanguage } = useLanguage()
 
@@ -132,26 +136,15 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Center: Session Switcher & Target Display - Strictly Pinned to Exact Center */}
       <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3 pointer-events-auto">
-        <div className="relative">
-          <select
-            value={activeSessionId || ''}
-            onChange={(e) => onSelectSession(e.target.value)}
-            className="appearance-none bg-slate-950/80 hover:bg-slate-950 text-slate-200 text-xs font-medium pl-3 pr-8 py-1.5 rounded-lg border border-slate-700/80 focus:border-indigo-500 focus:outline-none cursor-pointer transition shadow-inner min-w-[200px] max-w-[280px] truncate"
-          >
-            {sessions.length === 0 ? (
-              <option value="" disabled>
-                {t('header.noActiveSessions')}
-              </option>
-            ) : (
-              sessions.map((s) => (
-                <option key={s.session_id} value={s.session_id}>
-                  {s.title ? `${s.title.slice(0, 24)} (${s.session_id.slice(0, 8)})` : s.session_id}
-                </option>
-              ))
-            )}
-          </select>
-          <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-        </div>
+        <SessionSelector
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          activeSession={activeSession}
+          onSelectSession={onSelectSession}
+          onOpenNewSessionModal={onOpenNewSessionModal}
+          onDeleteSession={onDeleteSession}
+          onRenameSession={onRenameSession}
+        />
 
         <button
           onClick={onOpenNewSessionModal}
