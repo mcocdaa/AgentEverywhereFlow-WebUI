@@ -54,7 +54,18 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
       setSelectedTargetId((curr) => {
         if (data.length === 0) return ''
         const exists = data.some((t) => t.target_id === curr)
-        return exists ? curr : data[0].target_id
+        if (exists) return curr
+
+        // Prefer active non-Studio application windows, then displays, then Studio
+        const userApp = data.find(
+          (t) => t.target_type === 'window' && !t.title.includes('AgentEverywhereFlow Studio')
+        )
+        if (userApp) return userApp.target_id
+
+        const display = data.find((t) => t.target_type === 'display')
+        if (display) return display.target_id
+
+        return data[0].target_id
       })
 
       setRefreshedNotice(true)
@@ -224,6 +235,11 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         <div className="truncate">
                           <div className="text-xs font-semibold text-slate-200 truncate flex items-center gap-2">
                             <span>{target.title || t('newSession.untitledTarget')}</span>
+                            {target.title.includes('AgentEverywhereFlow Studio') && (
+                              <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 rounded border border-cyan-500/20 shrink-0">
+                                Studio
+                              </span>
+                            )}
                             {target.is_minimized && (
                               <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 rounded">
                                 {t('newSession.minimized')}

@@ -17,44 +17,86 @@ export function useSessionSocket(
   const [currentStep, setCurrentStep] = useState<number>(0)
 
   const socketRef = useRef<WebSocket | null>(null)
+  const boundSessionIdRef = useRef<string | null>(null)
   const reconnectTimeoutRef = useRef<number | null>(null)
-  const isMountedRef = useRef(true)
+  const activeSessionIdRef = useRef<string | null>(sessionId)
+  activeSessionIdRef.current = sessionId
 
   // Clear events when session changes
   useEffect(() => {
     setEvents([])
     setPendingApproval(null)
     setIsExecuting(false)
+    setCurrentTurn(0)
+    setCurrentStep(0)
   }, [sessionId])
 
   useEffect(() => {
-    isMountedRef.current = true
-    if (!sessionId) {
+    let isCleanedUp = false
+    const currentTargetSessionId = sessionId
+
+    if (!currentTargetSessionId) {
       if (socketRef.current) {
-        socketRef.current.close()
+        const ws = socketRef.current
+        ws.onopen = null
+        ws.onmessage = null
+        ws.onerror = null
+        ws.onclose = null
+        try {
+          ws.close()
+        } catch {
+          // ignore
+        }
         socketRef.current = null
+        boundSessionIdRef.current = null
       }
       setStatus('disconnected')
       return
     }
 
     const connect = () => {
-      if (!isMountedRef.current || !sessionId) return
+      if (isCleanedUp || activeSessionIdRef.current !== currentTargetSessionId) return
+
+      // Clean up previous socket if any before connecting new one
+      if (socketRef.current) {
+        const prev = socketRef.current
+        prev.onopen = null
+        prev.onmessage = null
+        prev.onerror = null
+        prev.onclose = null
+        try {
+          prev.close()
+        } catch {
+          // ignore
+        }
+        socketRef.current = null
+        boundSessionIdRef.current = null
+      }
 
       setStatus('connecting')
-      const wsUrl = api.getWebSocketUrl(sessionId)
+      const wsUrl = api.getWebSocketUrl(currentTargetSessionId)
       const ws = new WebSocket(wsUrl)
       socketRef.current = ws
+      boundSessionIdRef.current = currentTargetSessionId
 
       ws.onopen = () => {
-        if (!isMountedRef.current) return
+        if (isCleanedUp || activeSessionIdRef.current !== currentTargetSessionId) return
         setStatus('connected')
       }
 
       ws.onmessage = (event) => {
-        if (!isMountedRef.current) return
+        if (isCleanedUp || activeSessionIdRef.current !== currentTargetSessionId) return
         try {
           const ev: SessionEvent = JSON.parse(event.data)
+
+          // Strictly drop events meant for other sessions
+          if (ev.session_id && ev.session_id !== currentTargetSessionId) {
+            console.warn(
+              `[AEFlow WS] Dropping event for mismatched session: ${ev.session_id} (active: ${currentTargetSessionId})`
+            )
+            return
+          }
+
           setEvents((prev) => [...prev, ev])
 
           if (ev.step !== undefined) {
@@ -125,25 +167,28 @@ export function useSessionSocket(
       }
 
       ws.onclose = (event: CloseEvent) => {
-        if (!isMountedRef.current) return
+        if (isCleanedUp || activeSessionIdRef.current !== currentTargetSessionId) return
         setStatus('disconnected')
+
         // Stop reconnect loop if session was rejected by server policy / does not exist
         if (event.code === 1008 || event.code === 4404) {
           console.warn(
-            `[AEFlow WS] Session '${sessionId}' was closed by server (code ${event.code}): ${event.reason || 'session not found'}. Stopping reconnect loop.`
+            `[AEFlow WS] Session '${currentTargetSessionId}' was closed by server (code ${event.code}): ${event.reason || 'session not found'}. Stopping reconnect loop.`
           )
           return
         }
-        // Reconnect after 3 seconds if still mounted
+
+        // Reconnect after 3 seconds ONLY if still mounted and active
         reconnectTimeoutRef.current = window.setTimeout(() => {
-          if (isMountedRef.current && sessionId) {
+          if (!isCleanedUp && activeSessionIdRef.current === currentTargetSessionId) {
             connect()
           }
         }, 3000)
       }
 
       ws.onerror = (err) => {
-        console.warn('WebSocket error, closing connection:', err)
+        if (isCleanedUp || activeSessionIdRef.current !== currentTargetSessionId) return
+        console.warn(`[AEFlow WS] WebSocket error on session '${currentTargetSessionId}':`, err)
         ws.close()
       }
     }
@@ -151,20 +196,39 @@ export function useSessionSocket(
     connect()
 
     return () => {
-      isMountedRef.current = false
+      isCleanedUp = true
       if (reconnectTimeoutRef.current) {
         window.clearTimeout(reconnectTimeoutRef.current)
+        reconnectTimeoutRef.current = null
       }
       if (socketRef.current) {
-        socketRef.current.close()
+        const ws = socketRef.current
+        // Remove event handlers to prevent lingering zombie callbacks
+        ws.onopen = null
+        ws.onmessage = null
+        ws.onerror = null
+        ws.onclose = null
+        try {
+          ws.close()
+        } catch {
+          // ignore
+        }
         socketRef.current = null
+        boundSessionIdRef.current = null
       }
     }
   }, [sessionId, onNewActionMarker, onScreenshotRefresh])
 
   const sendInstruction = useCallback(
-    (instruction: string, maxSteps = 100) => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+    (instruction: string, maxSteps = 50) => {
+      const curId = activeSessionIdRef.current
+      if (!curId) return
+
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN &&
+        boundSessionIdRef.current === curId
+      ) {
         socketRef.current.send(
           JSON.stringify({
             action: 'message',
@@ -173,23 +237,30 @@ export function useSessionSocket(
           })
         )
         setIsExecuting(true)
-      } else if (sessionId) {
-        // Fallback to REST API
+      } else {
+        // Fallback to REST API strictly for curId
         setIsExecuting(true)
         api
-          .sendMessage(sessionId, { instruction, max_steps: maxSteps, async_execution: true })
+          .sendMessage(curId, { instruction, max_steps: maxSteps, async_execution: true })
           .catch((err) => {
-            console.error('Failed to send instruction via REST fallback:', err)
+            console.error(`Failed to send instruction to session '${curId}' via REST fallback:`, err)
             setIsExecuting(false)
           })
       }
     },
-    [sessionId]
+    []
   )
 
   const submitApproval = useCallback(
     (approved: boolean, reason?: string) => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      const curId = activeSessionIdRef.current
+      if (!curId) return
+
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN &&
+        boundSessionIdRef.current === curId
+      ) {
         socketRef.current.send(
           JSON.stringify({
             action: 'approval',
@@ -197,46 +268,58 @@ export function useSessionSocket(
             reason,
           })
         )
-      } else if (sessionId) {
-        api.submitApproval(sessionId, { approved, reason }).catch(console.error)
+      } else {
+        api.submitApproval(curId, { approved, reason }).catch(console.error)
       }
       setPendingApproval(null)
     },
-    [sessionId]
+    []
   )
 
   const setPermissionMode = useCallback(
     (mode: PermissionMode) => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      const curId = activeSessionIdRef.current
+      if (!curId) return
+
+      if (
+        socketRef.current &&
+        socketRef.current.readyState === WebSocket.OPEN &&
+        boundSessionIdRef.current === curId
+      ) {
         socketRef.current.send(
           JSON.stringify({
             action: 'permission',
             mode,
           })
         )
-      } else if (sessionId) {
-        api.updatePermission(sessionId, mode).catch(console.error)
+      } else {
+        api.updatePermission(curId, mode).catch(console.error)
       }
     },
-    [sessionId]
+    []
   )
 
   const abortExecution = useCallback(() => {
-    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+    const curId = activeSessionIdRef.current
+    if (!curId) return
+
+    if (
+      socketRef.current &&
+      socketRef.current.readyState === WebSocket.OPEN &&
+      boundSessionIdRef.current === curId
+    ) {
       socketRef.current.send(
         JSON.stringify({
           action: 'abort',
         })
       )
     }
-    if (sessionId) {
-      api.abortSession(sessionId).catch((err) => {
-        console.error('Failed to abort session via REST:', err)
-      })
-    }
+    api.abortSession(curId).catch((err) => {
+      console.error(`Failed to abort session '${curId}' via REST:`, err)
+    })
     setIsExecuting(false)
     setPendingApproval(null)
-  }, [sessionId])
+  }, [])
 
   const clearEvents = useCallback(() => {
     setEvents([])

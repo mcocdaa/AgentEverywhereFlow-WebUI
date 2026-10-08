@@ -94,10 +94,18 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
           switch (ev.event_type) {
             case 'turn_start': {
               const instruction = ev.payload.instruction as string
+              const targetTitle = (ev.payload.target_title as string) || ''
               return (
                 <div key={key} className="flex gap-3 justify-end items-start animate-in fade-in duration-150">
                   <div className="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 max-w-[85%] shadow-md">
-                    <div className="text-[10px] font-semibold text-indigo-200 mb-0.5">{t('stream.operator')}</div>
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="text-[10px] font-semibold text-indigo-200">{t('stream.operator')}</span>
+                      {targetTitle && (
+                        <span className="text-[9px] font-medium bg-indigo-950/60 text-indigo-200 px-1.5 py-0.5 rounded border border-indigo-400/30 truncate max-w-[150px]">
+                          🎯 {targetTitle}
+                        </span>
+                      )}
+                    </div>
                     <div className="text-xs leading-relaxed whitespace-pre-wrap">{instruction}</div>
                   </div>
                   <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center text-white shrink-0 mt-0.5">
