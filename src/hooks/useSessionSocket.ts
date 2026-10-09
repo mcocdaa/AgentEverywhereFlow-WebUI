@@ -144,6 +144,7 @@ export function useSessionSocket(
               setPendingApproval(null)
               break
             }
+            case 'turn_finished':
             case 'task_completed':
             case 'aborted': {
               setIsExecuting(false)

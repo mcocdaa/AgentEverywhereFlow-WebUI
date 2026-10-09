@@ -272,7 +272,41 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
               )
             }
 
+            case 'talk':
+            case 'message': {
+              const text =
+                ((ev.payload.text || ev.payload.message || ev.payload.content) as string) || ''
+              if (!text.trim()) return null
+
+              return (
+                <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
+                  <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-500/30 mt-0.5">
+                    <Bot className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 bg-slate-900 border border-indigo-500/20 rounded-2xl rounded-tl-sm p-3.5 shadow-sm">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="text-[10px] font-semibold text-indigo-300">
+                        {t('stream.agent')}
+                      </span>
+                      {ev.step ? (
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {t('stream.step')} {ev.step}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap font-sans">
+                      {text}
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+
             case 'task_completed': {
+              if (ev.payload.conversational) {
+                // Conversational turns are rendered via 'message' bubbles
+                return null
+              }
               const summary = ev.payload.summary as string
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">

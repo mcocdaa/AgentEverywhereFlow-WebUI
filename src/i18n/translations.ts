@@ -77,6 +77,8 @@ export const translations = {
     'stream.executionError': 'EXECUTION ERROR',
     'stream.executing': 'Agent is reasoning and executing actions...',
     'stream.toolCall': 'Tool Call',
+    'stream.agent': 'Agent',
+    'stream.agentMessage': 'Agent Message',
 
     // Prompt Input
     'prompt.quick1': 'Inspect active window layout and summarize UI',
@@ -225,6 +227,8 @@ export const translations = {
     'stream.executionError': '执行发生异常',
     'stream.executing': '智能体正在感知视口并执行动作...',
     'stream.toolCall': '原子工具',
+    'stream.agent': '智能体',
+    'stream.agentMessage': '智能体回应',
 
     // Prompt Input
     'prompt.quick1': '分析当前窗口界面布局与主要元素',
