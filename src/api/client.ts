@@ -82,6 +82,16 @@ class ApiClient {
     return this.request<SessionDetail>(`/api/v1/sessions/${encodeURIComponent(sessionId)}`)
   }
 
+  async getSessionHistory(sessionId: string): Promise<{
+    session_id: string
+    events: import('./types').SessionEvent[]
+    recorded_steps: Record<string, unknown>[]
+    turn_count: number
+    total_steps: number
+  }> {
+    return this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/history`)
+  }
+
   async sendMessage(sessionId: string, req: SendMessageRequest): Promise<unknown> {
     return this.request(`/api/v1/sessions/${encodeURIComponent(sessionId)}/message`, {
       method: 'POST',

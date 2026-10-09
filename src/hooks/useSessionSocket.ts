@@ -22,13 +22,34 @@ export function useSessionSocket(
   const activeSessionIdRef = useRef<string | null>(sessionId)
   activeSessionIdRef.current = sessionId
 
-  // Clear events when session changes
+  // Load session history and reset state when session changes
   useEffect(() => {
     setEvents([])
     setPendingApproval(null)
     setIsExecuting(false)
     setCurrentTurn(0)
     setCurrentStep(0)
+
+    if (!sessionId) return
+
+    let cancelled = false
+    api
+      .getSessionHistory(sessionId)
+      .then((history) => {
+        if (cancelled) return
+        if (history && Array.isArray(history.events)) {
+          setEvents(history.events)
+          if (history.turn_count) setCurrentTurn(history.turn_count)
+          if (history.total_steps) setCurrentStep(history.total_steps)
+        }
+      })
+      .catch((err) => {
+        console.warn(`Failed to fetch history for session '${sessionId}':`, err)
+      })
+
+    return () => {
+      cancelled = true
+    }
   }, [sessionId])
 
   useEffect(() => {
@@ -97,7 +118,13 @@ export function useSessionSocket(
             return
           }
 
-          setEvents((prev) => [...prev, ev])
+          setEvents((prev) => {
+            const evKey = `${ev.timestamp}-${ev.event_type}-${ev.step}`
+            if (prev.some((p) => `${p.timestamp}-${p.event_type}-${p.step}` === evKey)) {
+              return prev
+            }
+            return [...prev, ev]
+          })
 
           if (ev.step !== undefined) {
             setCurrentStep(ev.step)
