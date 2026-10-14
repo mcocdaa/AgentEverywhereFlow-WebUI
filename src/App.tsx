@@ -10,8 +10,10 @@ import { NewSessionModal } from './components/NewSessionModal'
 import { PromptInput } from './components/PromptInput'
 import { ViewportMonitor } from './components/ViewportMonitor'
 import { useSessionSocket } from './hooks/useSessionSocket'
+import { useLanguage } from './i18n/LanguageContext'
 
 export function App() {
+  const { t } = useLanguage()
   const [sessions, setSessions] = useState<SessionSummary[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [activeSession, setActiveSession] = useState<SessionDetail | null>(null)
@@ -37,18 +39,47 @@ export function App() {
     }, 4000)
   }, [])
 
+  // Sync updated session metadata (turn_count, total_steps, target)
+  const handleSessionUpdated = useCallback((detail: SessionDetail) => {
+    setActiveSession(detail)
+    setPermissionMode(detail.permission_mode)
+    setSessions((curr) =>
+      curr.map((s) =>
+        s.session_id === detail.session_id
+          ? {
+              ...s,
+              title: detail.title || s.title,
+              target_id: detail.target.target_id,
+              target_title: detail.target.title,
+              state: detail.state,
+              turn_count: detail.turn_count,
+              total_steps: detail.total_steps,
+              permission_mode: detail.permission_mode,
+            }
+          : s
+      )
+    )
+  }, [])
+
   // Hook for WebSocket connection
   const {
     status: connectionStatus,
     events,
     pendingApproval,
     isExecuting,
+    setPendingApproval,
+    setIsExecuting,
     sendInstruction,
     abortExecution,
     submitApproval,
     setPermissionMode: updateSocketPermission,
     clearEvents,
-  } = useSessionSocket(activeSessionId, handleNewActionMarker, triggerScreenshotRefresh)
+  } = useSessionSocket(
+    activeSessionId,
+    handleNewActionMarker,
+    triggerScreenshotRefresh,
+    handleSessionUpdated
+  )
 
   // Load backend status and sessions
   const refreshSessions = useCallback(async () => {
@@ -76,18 +107,35 @@ export function App() {
 
   // Load active session detail when activeSessionId changes
   useEffect(() => {
+    setActionMarkers([])
     if (!activeSessionId) {
       setActiveSession(null)
       return
     }
 
+    let cancelled = false
     api
       .getSession(activeSessionId)
       .then((detail) => {
+        if (cancelled) return
         setActiveSession(detail)
         setPermissionMode(detail.permission_mode)
+        if (detail.pending_approval) {
+          const raw = detail.pending_approval as unknown as Record<string, unknown>
+          setPendingApproval({
+            action: (raw.action_type || raw.action || 'unknown') as string,
+            params: (raw.details || raw.params || {}) as Record<string, unknown>,
+            context: (raw.description || raw.context || '') as string,
+            code_snippet: raw.code_snippet as string | undefined,
+            requested_at: Date.now(),
+          })
+        } else {
+          setPendingApproval(null)
+        }
+        setIsExecuting(detail.state === 'running' || detail.state === 'waiting_approval')
       })
       .catch((err) => {
+        if (cancelled) return
         console.error('Failed to load session details:', err)
         setActiveSession(null)
         setSessions((curr) => {
@@ -100,7 +148,11 @@ export function App() {
           return remaining
         })
       })
-  }, [activeSessionId])
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeSessionId, setPendingApproval, setIsExecuting])
 
   // Handle session switching
   const handleSelectSession = (id: string) => {
@@ -114,22 +166,17 @@ export function App() {
   }
 
   // Handle permission toggle
-  const handleTogglePermission = async () => {
+  const handleTogglePermission = () => {
     if (!activeSessionId) return
     const newMode: PermissionMode = permissionMode === 'auto' ? 'manual' : 'auto'
     setPermissionMode(newMode)
     updateSocketPermission(newMode)
-    try {
-      await api.updatePermission(activeSessionId, newMode)
-    } catch (e) {
-      console.error('Failed to update permission mode:', e)
-    }
   }
 
   // Handle reset session history
   const handleResetSession = async () => {
     if (!activeSessionId) return
-    if (confirm('Clear current session conversation history? (Viewport target remains bound)')) {
+    if (confirm(t('header.resetConfirm'))) {
       try {
         await api.resetSession(activeSessionId)
         clearEvents()
@@ -208,10 +255,10 @@ export function App() {
         {/* Right: Interaction Stream & Prompt Input (5 columns) */}
         <section className="col-span-12 lg:col-span-5 h-full flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
           <div className="h-11 px-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between select-none">
-            <span className="text-xs font-semibold text-slate-200">Dialogue Stream</span>
+            <span className="text-xs font-semibold text-slate-200">{t('stream.title')}</span>
             {activeSession && (
               <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded font-mono">
-                Mode: {activeSession.mode}
+                {t('header.mode')}: {activeSession.mode}
               </span>
             )}
           </div>

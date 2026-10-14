@@ -20,6 +20,10 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
 
   if (!pending) return null
 
+  const actionName = pending.action || pending.action_type || 'unknown'
+  const actionParams = pending.params || pending.details || {}
+  const actionContext = pending.context || pending.description || ''
+
   const handleReject = () => {
     onReject(rejectReason || undefined)
     setRejectReason('')
@@ -44,12 +48,18 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
       <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 mb-3 space-y-1.5 font-mono text-xs">
         <div className="flex justify-between items-center text-slate-400 text-[11px]">
           <span>{t('approval.action')}</span>
-          <span className="text-amber-400 font-bold uppercase">{pending.action}</span>
+          <span className="text-amber-400 font-bold uppercase">{actionName}</span>
         </div>
 
-        {Object.keys(pending.params || {}).length > 0 && (
+        {actionContext && (
+          <div className="text-[11px] text-slate-300 font-sans leading-relaxed">
+            {actionContext}
+          </div>
+        )}
+
+        {Object.keys(actionParams).length > 0 && (
           <div className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800/80 overflow-x-auto">
-            {JSON.stringify(pending.params, null, 2)}
+            {JSON.stringify(actionParams, null, 2)}
           </div>
         )}
 

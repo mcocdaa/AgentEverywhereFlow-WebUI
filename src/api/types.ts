@@ -34,6 +34,9 @@ export interface PendingApproval {
   code_snippet?: string
   context?: string
   requested_at?: number
+  action_type?: string
+  details?: Record<string, unknown>
+  description?: string
 }
 
 export interface SessionSummary {

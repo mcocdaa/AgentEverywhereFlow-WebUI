@@ -1,13 +1,28 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../api/client'
-import type { ActionMarker, PendingApproval, PermissionMode, SessionEvent } from '../api/types'
+import type {
+  ActionMarker,
+  PendingApproval,
+  PermissionMode,
+  SessionDetail,
+  SessionEvent,
+} from '../api/types'
 
 export type ConnectionStatus = 'connected' | 'connecting' | 'disconnected'
+
+function getEventKey(ev: SessionEvent): string {
+  const idDisc =
+    (ev.payload?.id as string | undefined) ||
+    (ev.payload?.request_id as string | undefined) ||
+    JSON.stringify(ev.payload ?? {})
+  return `${ev.timestamp}-${ev.event_type}-${ev.step}-${idDisc}`
+}
 
 export function useSessionSocket(
   sessionId: string | null,
   onNewActionMarker?: (marker: ActionMarker) => void,
-  onScreenshotRefresh?: () => void
+  onScreenshotRefresh?: () => void,
+  onSessionUpdated?: (detail: SessionDetail) => void
 ) {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
   const [events, setEvents] = useState<SessionEvent[]>([])
@@ -20,7 +35,10 @@ export function useSessionSocket(
   const boundSessionIdRef = useRef<string | null>(null)
   const reconnectTimeoutRef = useRef<number | null>(null)
   const activeSessionIdRef = useRef<string | null>(sessionId)
-  activeSessionIdRef.current = sessionId
+
+  useEffect(() => {
+    activeSessionIdRef.current = sessionId
+  }, [sessionId])
 
   // Load session history and reset state when session changes
   useEffect(() => {
@@ -38,9 +56,22 @@ export function useSessionSocket(
       .then((history) => {
         if (cancelled) return
         if (history && Array.isArray(history.events)) {
-          setEvents(history.events)
-          if (history.turn_count) setCurrentTurn(history.turn_count)
-          if (history.total_steps) setCurrentStep(history.total_steps)
+          setEvents((prev) => {
+            if (prev.length === 0) return history.events
+            const seen = new Set<string>()
+            const merged: SessionEvent[] = []
+            for (const e of [...history.events, ...prev]) {
+              const k = getEventKey(e)
+              if (!seen.has(k)) {
+                seen.add(k)
+                merged.push(e)
+              }
+            }
+            merged.sort((a, b) => a.timestamp - b.timestamp)
+            return merged
+          })
+          if (history.turn_count) setCurrentTurn((prev) => Math.max(prev, history.turn_count))
+          if (history.total_steps) setCurrentStep((prev) => Math.max(prev, history.total_steps))
         }
       })
       .catch((err) => {
@@ -119,8 +150,8 @@ export function useSessionSocket(
           }
 
           setEvents((prev) => {
-            const evKey = `${ev.timestamp}-${ev.event_type}-${ev.step}`
-            if (prev.some((p) => `${p.timestamp}-${p.event_type}-${p.step}` === evKey)) {
+            const evKey = getEventKey(ev)
+            if (prev.some((p) => getEventKey(p) === evKey)) {
               return prev
             }
             return [...prev, ev]
@@ -138,17 +169,52 @@ export function useSessionSocket(
               setCurrentTurn(turnNum)
               break
             }
+            case 'observe': {
+              onScreenshotRefresh?.()
+              break
+            }
             case 'action_proposed': {
-              const action = ev.payload.action as string | undefined
-              const params = ev.payload.params as Record<string, unknown> | undefined
-              if (action && params && typeof params.x === 'number' && typeof params.y === 'number') {
+              const innerPayload =
+                ev.payload.payload && typeof ev.payload.payload === 'object'
+                  ? (ev.payload.payload as Record<string, unknown>)
+                  : undefined
+              const action =
+                (innerPayload?.action as string | undefined) ||
+                (ev.payload.action as string | undefined)
+              const params =
+                (innerPayload?.params as Record<string, unknown> | undefined) ||
+                (ev.payload.params as Record<string, unknown> | undefined) ||
+                innerPayload
+              const rawX = params?.x ?? params?.from_x
+              const rawY = params?.y ?? params?.from_y
+              if (action && typeof rawX === 'number' && typeof rawY === 'number') {
                 onNewActionMarker?.({
                   id: `${Date.now()}-${Math.random()}`,
-                  x: params.x,
-                  y: params.y,
+                  x: rawX,
+                  y: rawY,
                   action,
                   timestamp: Date.now(),
                 })
+              }
+
+              const code = ev.payload.code as string | undefined
+              if (typeof code === 'string' && code.trim()) {
+                const coordRegex =
+                  /\b(click|double_click|right_click|move|drag)\s*\(\s*(?:(?:x|from_x)\s*=\s*)?([0-9]+(?:\.[0-9]+)?)\s*,\s*(?:(?:y|from_y)\s*=\s*)?([0-9]+(?:\.[0-9]+)?)/g
+                for (const match of code.matchAll(coordRegex)) {
+                  const matchedAction = match[1]
+                  const mx = Number(match[2])
+                  const my = Number(match[3])
+                  if (!Number.isNaN(mx) && !Number.isNaN(my)) {
+                    onNewActionMarker?.({
+                      id: `${Date.now()}-${Math.random()}`,
+                      x: mx,
+                      y: my,
+                      action: matchedAction,
+                      timestamp: Date.now(),
+                    })
+                  }
+                }
               }
               break
             }
@@ -159,10 +225,10 @@ export function useSessionSocket(
             }
             case 'approval_required': {
               setPendingApproval({
-                action: (ev.payload.action as string) || 'unknown',
-                params: (ev.payload.params as Record<string, unknown>) || {},
-                code_snippet: ev.payload.code_snippet as string | undefined,
-                context: ev.payload.context as string | undefined,
+                action: (ev.payload.action_type || ev.payload.action || 'unknown') as string,
+                params: ((ev.payload.details || ev.payload.params || {}) as Record<string, unknown>),
+                context: ((ev.payload.description || ev.payload.context || '') as string),
+                code_snippet: (ev.payload.code_snippet as string | undefined),
                 requested_at: Date.now(),
               })
               break
@@ -177,6 +243,17 @@ export function useSessionSocket(
               setIsExecuting(false)
               setPendingApproval(null)
               onScreenshotRefresh?.()
+              api
+                .getSession(currentTargetSessionId)
+                .then((detail) => {
+                  if (isCleanedUp || activeSessionIdRef.current !== currentTargetSessionId) return
+                  setCurrentTurn(detail.turn_count)
+                  setCurrentStep(detail.total_steps)
+                  onSessionUpdated?.(detail)
+                })
+                .catch((err) => {
+                  console.warn('Failed to refresh session metadata:', err)
+                })
               break
             }
             case 'error': {
@@ -245,7 +322,7 @@ export function useSessionSocket(
         boundSessionIdRef.current = null
       }
     }
-  }, [sessionId, onNewActionMarker, onScreenshotRefresh])
+  }, [sessionId, onNewActionMarker, onScreenshotRefresh, onSessionUpdated])
 
   const sendInstruction = useCallback(
     (instruction: string, maxSteps = 50) => {
@@ -341,10 +418,11 @@ export function useSessionSocket(
           action: 'abort',
         })
       )
+    } else {
+      api.abortSession(curId).catch((err) => {
+        console.error(`Failed to abort session '${curId}' via REST:`, err)
+      })
     }
-    api.abortSession(curId).catch((err) => {
-      console.error(`Failed to abort session '${curId}' via REST:`, err)
-    })
     setIsExecuting(false)
     setPendingApproval(null)
   }, [])
@@ -360,6 +438,8 @@ export function useSessionSocket(
     isExecuting,
     currentTurn,
     currentStep,
+    setPendingApproval,
+    setIsExecuting,
     sendInstruction,
     abortExecution,
     submitApproval,

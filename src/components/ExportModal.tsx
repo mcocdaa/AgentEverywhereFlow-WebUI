@@ -17,15 +17,49 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   onClose,
 }) => {
   const { t } = useLanguage()
-  const [format, setFormat] = useState<'json' | 'python' | 'markdown'>('python')
+  const [format, setFormat] = useState<'python' | 'yaml' | 'markdown' | 'json'>('python')
   const [copied, setCopied] = useState(false)
   const [content, setContent] = useState('')
 
-  const buildContent = useCallback((fmt: 'json' | 'python' | 'markdown') => {
+  const buildContent = useCallback((fmt: 'python' | 'yaml' | 'markdown' | 'json') => {
     if (!session) return ''
     const timestamp = Date.now()
     const nowIso = new Date(timestamp).toISOString()
     const nowLocale = new Date(timestamp).toLocaleString()
+
+    const isEventRejected = (idx: number): boolean => {
+      const ev = events[idx]
+      if (!ev || ev.payload.rejected === true) return true
+      for (let i = idx + 1; i < events.length; i++) {
+        const nextEv = events[i]
+        if (nextEv.event_type === 'action_proposed' || nextEv.event_type === 'turn_start') {
+          break
+        }
+        if (nextEv.event_type === 'action_executed' && nextEv.payload.rejected === true) {
+          return true
+        }
+      }
+      return false
+    }
+
+    const extractActionDetails = (ev: SessionEvent) => {
+      const code = typeof ev.payload.code === 'string' ? ev.payload.code.trim() : undefined
+      const guardedPayload =
+        ev.payload.payload && typeof ev.payload.payload === 'object'
+          ? (ev.payload.payload as Record<string, unknown>)
+          : undefined
+      const action =
+        (guardedPayload?.action as string | undefined) ||
+        (ev.payload.action as string | undefined)
+      const params: Record<string, unknown> | undefined =
+        (ev.payload.params as Record<string, unknown> | undefined) ||
+        (guardedPayload?.params && typeof guardedPayload.params === 'object'
+          ? (guardedPayload.params as Record<string, unknown>)
+          : guardedPayload
+          ? Object.fromEntries(Object.entries(guardedPayload).filter(([k]) => k !== 'action'))
+          : undefined)
+      return { code, action, params }
+    }
 
     if (fmt === 'json') {
       return JSON.stringify(
@@ -45,21 +79,35 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
     if (fmt === 'python') {
       const actions: string[] = []
-      events.forEach((ev) => {
+      events.forEach((ev, idx) => {
         if (ev.event_type === 'action_proposed') {
-          const code = ev.payload.code as string | undefined
-          const action = ev.payload.action as string | undefined
-          const params = ev.payload.params as Record<string, unknown> | undefined
+          if (isEventRejected(idx)) return
+          const { code, action, params } = extractActionDetails(ev)
           if (code) {
-            actions.push(code.trim())
-          } else if (action && params) {
-            const args = Object.entries(params)
-              .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
-              .join(', ')
-            actions.push(`${action}(${args})`)
+            actions.push(code)
+          } else if (action) {
+            const args = params
+              ? Object.entries(params)
+                  .map(([k, v]) => `${k}=${JSON.stringify(v)}`)
+                  .join(', ')
+              : ''
+            actions.push(`driver.${action}(${args})`)
           }
         }
       })
+
+      const formattedActions =
+        actions.length > 0
+          ? actions
+              .map((act) => {
+                const indented = act
+                  .split('\n')
+                  .map((line) => (line.trim().length > 0 ? `    ${line}` : ''))
+                  .join('\n')
+                return `${indented}\n    time.sleep(0.5)`
+              })
+              .join('\n')
+          : '    # No actions recorded in this session yet\n    pass'
 
       return `"""
 AgentEverywhereFlow Replayable Workflow Script
@@ -69,25 +117,91 @@ Generated at: ${nowIso}
 """
 
 import time
-from agenteverywhereflow.actions.driver import ActionDriver
+from agenteverywhereflow.actions.driver import driver
 from agenteverywhereflow.actions.coords import CoordinateProjector
-from agenteverywhereflow.capturer.selector import TargetInfo, Rect, TargetType
+from agenteverywhereflow.capturer.base import Rect, TargetInfo, TargetType
+try:
+    from agenteverywhereflow.capturer import get_capturer
+except ImportError:
+    from agenteverywhereflow.capturer.base import get_capturer
+
 
 def run_workflow():
-    print("Initializing ActionDriver for target '${session.target.title}'...")
-    driver = ActionDriver()
+    print("Initializing workflow for target '${session.target.title}'...")
+    capturer = get_capturer()
+    _ = (capturer, CoordinateProjector, Rect, TargetInfo, TargetType)
+    click = driver.click
+    double_click = driver.double_click
+    right_click = driver.right_click
+    move = driver.move_to
+    drag = driver.drag
+    type_text = driver.type_text
+    press = driver.press_key
+    hotkey = driver.hotkey
+    scroll = driver.scroll
+    wait = driver.wait
 
     # Replay executed agent actions
-${
-  actions.length > 0
-    ? actions.map((act) => `    ${act}\n    time.sleep(0.5)`).join('\n')
-    : '    # No actions recorded in this session yet\n    pass'
-}
+${formattedActions}
 
     print("Workflow replay completed successfully.")
 
+
 if __name__ == "__main__":
     run_workflow()
+`
+    }
+
+    if (fmt === 'yaml') {
+      const yamlSteps: string[] = []
+      let stepCounter = 1
+      events.forEach((ev, idx) => {
+        if (ev.event_type === 'action_proposed') {
+          if (isEventRejected(idx)) return
+          const { code, action, params } = extractActionDetails(ev)
+          if (code) {
+            const indentedCode = code
+              .split('\n')
+              .map((line) => `      ${line}`)
+              .join('\n')
+            yamlSteps.push(
+              `  - step_number: ${stepCounter}\n` +
+                `    action: "codeact"\n` +
+                `    target: ${JSON.stringify(session.target.title)}\n` +
+                `    code: |\n${indentedCode}`
+            )
+            stepCounter += 1
+          } else if (action) {
+            yamlSteps.push(
+              `  - step_number: ${stepCounter}\n` +
+                `    action: ${JSON.stringify(action)}\n` +
+                `    target: ${JSON.stringify(session.target.title)}\n` +
+                `    params: ${JSON.stringify(params || {})}`
+            )
+            stepCounter += 1
+          }
+        }
+      })
+
+      return `name: ${JSON.stringify(`workflow_${session.session_id}`)}
+description: ${JSON.stringify(`Replayable workflow exported from dialogue session '${session.session_id}'`)}
+version: "1.0"
+created_at: ${Math.floor(timestamp / 1000)}
+targets:
+  - target_id: ${JSON.stringify(session.target.target_id)}
+    title: ${JSON.stringify(session.target.title)}
+    rect:
+      x: ${session.target.rect.x ?? 0}
+      y: ${session.target.rect.y ?? 0}
+      width: ${session.target.rect.width}
+      height: ${session.target.rect.height}
+${yamlSteps.length > 0 ? `steps:\n${yamlSteps.join('\n')}` : 'steps: []'}
+metadata:
+  session_id: ${JSON.stringify(session.session_id)}
+  mode: ${JSON.stringify(session.mode)}
+  total_turns: ${session.turn_count}
+  total_steps: ${session.total_steps}
+  exported_at: ${JSON.stringify(nowIso)}
 `
     }
 
@@ -107,11 +221,14 @@ if __name__ == "__main__":
       } else if (ev.event_type === 'reasoning') {
         md += `#### 🧠 Reasoning (Step ${ev.step})\n\n${ev.payload.thinking}\n\n`
       } else if (ev.event_type === 'action_proposed') {
+        const { code, action, params } = extractActionDetails(ev)
         md += `#### ⚡ Proposed Action\n\n\`\`\`python\n${
-          ev.payload.code || `${ev.payload.action}(${JSON.stringify(ev.payload.params)})`
+          code || `${action || 'action'}(${JSON.stringify(params || {})})`
         }\n\`\`\`\n\n`
       } else if (ev.event_type === 'action_executed') {
-        md += `- **Execution Output**: \`${ev.payload.success ? 'SUCCESS' : 'FAILED'}\`\n`
+        md += `- **Execution Output**: \`${
+          ev.payload.rejected ? 'REJECTED' : ev.payload.success ? 'SUCCESS' : 'FAILED'
+        }\`\n`
         if (ev.payload.output) md += `  \`\`\`\n  ${ev.payload.output}\n  \`\`\`\n`
         md += `\n`
       } else if (ev.event_type === 'task_completed') {
@@ -140,12 +257,21 @@ if __name__ == "__main__":
 
   const handleDownload = () => {
     const text = buildContent(format)
-    const ext = format === 'json' ? 'json' : format === 'python' ? 'py' : 'md'
+    const ext =
+      format === 'json'
+        ? 'json'
+        : format === 'python'
+        ? 'py'
+        : format === 'yaml'
+        ? 'yaml'
+        : 'md'
     const mime =
       format === 'json'
         ? 'application/json'
         : format === 'python'
         ? 'text/x-python'
+        : format === 'yaml'
+        ? 'text/yaml'
         : 'text/markdown'
     const blob = new Blob([text], { type: mime })
     const url = URL.createObjectURL(blob)
@@ -179,7 +305,7 @@ if __name__ == "__main__":
         </div>
 
         {/* Format Selector Tabs */}
-        <div className="px-6 pt-4 flex gap-2">
+        <div className="px-6 pt-4 flex flex-wrap gap-2">
           <button
             onClick={() => setFormat('python')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
@@ -190,6 +316,18 @@ if __name__ == "__main__":
           >
             <FileCode className="w-3.5 h-3.5" />
             <span>{t('export.tabPython')}</span>
+          </button>
+
+          <button
+            onClick={() => setFormat('yaml')}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              format === 'yaml'
+                ? 'bg-indigo-600 text-white shadow-sm'
+                : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <FileCode className="w-3.5 h-3.5" />
+            <span>{t('export.tabYaml')}</span>
           </button>
 
           <button

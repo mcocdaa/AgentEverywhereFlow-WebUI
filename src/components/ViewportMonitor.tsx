@@ -50,6 +50,17 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
     return () => window.clearInterval(interval)
   }, [autoRefresh, session, onManualRefresh])
 
+  // Sync fullscreen state when user exits fullscreen via Escape key
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement))
+    }
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    }
+  }, [])
+
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
     if (!imgRef.current || !session) return
     const rect = imgRef.current.getBoundingClientRect()
@@ -93,7 +104,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
         <div className="flex items-center gap-2 overflow-hidden">
           <Monitor className="w-4 h-4 text-indigo-400 shrink-0" />
           <span className="text-xs font-semibold text-slate-200 truncate">
-            {session ? session.target.title : 'No Active Viewport'}
+            {session ? session.target.title : t('viewport.noTarget')}
           </span>
           {session && (
             <span className="text-[10px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded font-mono shrink-0">
@@ -205,7 +216,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
             })}
           </div>
         ) : (
-          <div className="text-center text-xs text-slate-500">Loading viewport capture...</div>
+          <div className="text-center text-xs text-slate-500">{t('viewport.loading')}</div>
         )}
       </div>
     </div>

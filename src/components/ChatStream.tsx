@@ -157,8 +157,24 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
 
             case 'action_proposed': {
               const code = ev.payload.code as string | undefined
-              const action = ev.payload.action as string | undefined
-              const params = ev.payload.params as Record<string, unknown> | undefined
+              const guardedPayload =
+                ev.payload.type === 'guarded' ||
+                (ev.payload.payload && typeof ev.payload.payload === 'object')
+                  ? (ev.payload.payload as Record<string, unknown> | undefined)
+                  : undefined
+              const action =
+                (guardedPayload?.action as string | undefined) ||
+                (ev.payload.action as string | undefined) ||
+                'action'
+              const params =
+                (ev.payload.params as Record<string, unknown> | undefined) ||
+                (guardedPayload?.params && typeof guardedPayload.params === 'object'
+                  ? (guardedPayload.params as Record<string, unknown>)
+                  : guardedPayload
+                  ? Object.fromEntries(
+                      Object.entries(guardedPayload).filter(([k]) => k !== 'action')
+                    )
+                  : {})
 
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">

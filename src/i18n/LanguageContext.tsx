@@ -48,6 +48,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   )
 }
 
+// oxlint-disable-next-line react/only-export-components
 export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext)
   if (!context) {
