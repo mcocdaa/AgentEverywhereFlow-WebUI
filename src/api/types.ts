@@ -124,3 +124,30 @@ export interface ActionMarker {
   action: string
   timestamp: number
 }
+
+export interface ExportSessionResponse {
+  session_id: string
+  format: 'python' | 'yaml' | 'markdown'
+  content: string
+  step_count: number
+  workflow: Record<string, unknown>
+}
+
+export interface RunWorkflowRequest {
+  workflow_yaml?: string
+  session_id?: string
+  target_id?: string
+  dry_run?: boolean
+  step_delay?: number
+}
+
+export interface RunWorkflowResponse {
+  status: string
+  steps?: number
+  steps_executed?: number
+  total_steps?: number
+  elapsed_seconds?: number
+  error?: string | null
+  workflow?: Record<string, unknown>
+}
+

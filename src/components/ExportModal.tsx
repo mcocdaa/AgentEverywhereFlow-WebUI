@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Check, Copy, Download, FileCode, FileJson, FileText, X } from 'lucide-react'
+import { Check, Copy, Download, FileCode, FileJson, FileText, Play, X } from 'lucide-react'
+import { api } from '../api/client'
 import type { SessionDetail, SessionEvent } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
 
@@ -20,6 +21,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   const [format, setFormat] = useState<'python' | 'yaml' | 'markdown' | 'json'>('python')
   const [copied, setCopied] = useState(false)
   const [content, setContent] = useState('')
+  const [replayStatus, setReplayStatus] = useState<{
+    loading: boolean
+    ok?: boolean
+    message?: string
+  }>({ loading: false })
 
   const buildContent = useCallback((fmt: 'python' | 'yaml' | 'markdown' | 'json') => {
     if (!session) return ''
@@ -240,15 +246,33 @@ metadata:
   }, [session, events])
 
   useEffect(() => {
-    if (isOpen) {
-      setContent(buildContent(format))
+    if (!isOpen || !session) return
+    let cancelled = false
+    const fallback = buildContent(format)
+    setContent(fallback)
+
+    if (format === 'python' || format === 'yaml' || format === 'markdown') {
+      api
+        .exportSession(session.session_id, format)
+        .then((res) => {
+          if (!cancelled && res.content && res.content.trim().length > 0) {
+            setContent(res.content)
+          }
+        })
+        .catch(() => {
+          // Offline or API error: keep local fallback content
+        })
     }
-  }, [isOpen, format, buildContent])
+
+    return () => {
+      cancelled = true
+    }
+  }, [isOpen, format, session, buildContent])
 
   if (!isOpen || !session) return null
 
   const handleCopy = () => {
-    const text = buildContent(format)
+    const text = content || buildContent(format)
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -256,7 +280,7 @@ metadata:
   }
 
   const handleDownload = () => {
-    const text = buildContent(format)
+    const text = content || buildContent(format)
     const ext =
       format === 'json'
         ? 'json'
@@ -280,6 +304,33 @@ metadata:
     a.download = `aef-${session.session_id.slice(0, 8)}-workflow.${ext}`
     a.click()
     URL.revokeObjectURL(url)
+  }
+
+  const handleReplayViaApi = async (dryRun = true) => {
+    setReplayStatus({ loading: true })
+    try {
+      const res = await api.runWorkflow({
+        session_id: session.session_id,
+        dry_run: dryRun,
+      })
+      const stepCount = res.steps_executed ?? res.steps ?? 0
+      setReplayStatus({
+        loading: false,
+        ok: res.status !== 'failed',
+        message:
+          res.status === 'dry_run'
+            ? `✓ Dry-Run validated (${stepCount} steps ready)`
+            : res.status === 'completed'
+            ? `✓ Replayed ${stepCount} steps successfully`
+            : `⚠ Workflow status: ${res.status}${res.error ? ` (${res.error})` : ''}`,
+      })
+    } catch (err) {
+      setReplayStatus({
+        loading: false,
+        ok: false,
+        message: err instanceof Error ? err.message : 'Replay request failed',
+      })
+    }
   }
 
   return (
@@ -356,19 +407,39 @@ metadata:
         </div>
 
         {/* Code Preview */}
-        <div className="p-6 flex-1 overflow-hidden flex flex-col">
+        <div className="p-6 flex-1 overflow-hidden flex flex-col gap-3">
+          {replayStatus.message && (
+            <div
+              className={`px-3.5 py-2 rounded-lg text-xs font-mono border ${
+                replayStatus.ok
+                  ? 'bg-emerald-950/50 border-emerald-500/30 text-emerald-300'
+                  : 'bg-rose-950/50 border-rose-500/30 text-rose-300'
+              }`}
+            >
+              {replayStatus.message}
+            </div>
+          )}
           <div className="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-[11px] text-slate-300 overflow-y-auto whitespace-pre">
             {content}
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between flex-wrap gap-2">
           <span className="text-[11px] text-slate-500 font-mono">
             {events.length} session events recorded
           </span>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleReplayViaApi(true)}
+              disabled={replayStatus.loading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-300 hover:text-white bg-emerald-950/60 hover:bg-emerald-800/60 border border-emerald-500/30 transition cursor-pointer disabled:opacity-50"
+            >
+              <Play className="w-3.5 h-3.5" />
+              <span>{replayStatus.loading ? 'Validating...' : '▶ Replay / Dry-Run via API'}</span>
+            </button>
+
             <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition cursor-pointer"
@@ -390,3 +461,4 @@ metadata:
     </div>
   )
 }
+

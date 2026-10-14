@@ -1,8 +1,11 @@
 import type {
   CreateSessionRequest,
+  ExportSessionResponse,
   HealthResponse,
   PendingApproval,
   PermissionMode,
+  RunWorkflowRequest,
+  RunWorkflowResponse,
   SendMessageRequest,
   SessionDetail,
   SessionSummary,
@@ -152,6 +155,27 @@ class ApiClient {
     })
   }
 
+  async exportSession(
+    sessionId: string,
+    format: 'python' | 'yaml' | 'markdown',
+    workflowName?: string
+  ): Promise<ExportSessionResponse> {
+    const params = new URLSearchParams({ format })
+    if (workflowName) {
+      params.append('workflow_name', workflowName)
+    }
+    return this.request<ExportSessionResponse>(
+      `/api/v1/sessions/${encodeURIComponent(sessionId)}/export?${params.toString()}`
+    )
+  }
+
+  async runWorkflow(params: RunWorkflowRequest): Promise<RunWorkflowResponse> {
+    return this.request<RunWorkflowResponse>('/api/v1/workflows/run', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    })
+  }
+
   getScreenshotUrl(sessionId: string): string {
     const base = this.baseUrl || window.location.origin
     return `${base}/api/v1/sessions/${encodeURIComponent(sessionId)}/screenshot?t=${Date.now()}`
@@ -170,3 +194,4 @@ class ApiClient {
 }
 
 export const api = new ApiClient()
+
