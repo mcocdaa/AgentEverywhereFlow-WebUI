@@ -11,6 +11,10 @@
 [![Styling: Tailwind v4](https://img.shields.io/badge/Tailwind-v4-38B2AC.svg?logo=tailwindcss&logoColor=white)](package.json)
 [![Companion: AgentEverywhereFlow](https://img.shields.io/badge/Companion-AgentEverywhereFlow-indigo.svg)](https://github.com/mcocdaa/AgentEverywhereFlow)
 
+<br />
+
+<img src="docs/assets/demo_webui.gif" alt="AgentEverywhereFlow WebUI Demo" width="820">
+
 </div>
 
 ---
