@@ -3,6 +3,7 @@ import { Check, Copy, Download, FileCode, FileJson, FileText, Play, X } from 'lu
 import { api } from '../api/client'
 import type { SessionDetail, SessionEvent } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
+import { formatTargetTitle } from '../i18n/translations'
 
 interface ExportModalProps {
   isOpen: boolean
@@ -25,7 +26,45 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     loading: boolean
     ok?: boolean
     message?: string
+    kind?: 'dry_run' | 'completed' | 'workflow_status' | 'error'
+    stepCount?: number
+    statusText?: string
+    errorText?: string | null
+    isGenericErr?: boolean
   }>({ loading: false })
+
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  useEffect(() => {
+    if (!replayStatus.kind) return
+    let nextMsg = replayStatus.message
+    if (replayStatus.kind === 'dry_run') {
+      nextMsg = t('export.dryRunValidated').replace('{count}', String(replayStatus.stepCount ?? 0))
+    } else if (replayStatus.kind === 'completed') {
+      nextMsg = t('export.replayedSuccess').replace('{count}', String(replayStatus.stepCount ?? 0))
+    } else if (replayStatus.kind === 'workflow_status') {
+      nextMsg = `${t('export.workflowStatus').replace('{status}', replayStatus.statusText ?? '')}${
+        replayStatus.errorText ? ` (${replayStatus.errorText})` : ''
+      }`
+    } else if (replayStatus.kind === 'error') {
+      nextMsg =
+        language === 'zh' && replayStatus.isGenericErr
+          ? t('export.error')
+          : replayStatus.errorText || t('export.error')
+    }
+    if (nextMsg !== replayStatus.message) {
+      setReplayStatus((prev) => ({ ...prev, message: nextMsg }))
+    }
+  }, [language, replayStatus, t])
 
   const buildContent = useCallback((fmt: 'python' | 'yaml' | 'markdown' | 'json') => {
     if (!session) return ''
@@ -215,13 +254,13 @@ metadata:
     if (language === 'zh') {
       const modeZh =
         session.mode === 'minimal'
-          ? '极简模式'
+          ? '极简执行'
           : session.mode === 'guarded'
-          ? '受控模式'
+          ? '受控审批'
           : session.mode
       let md = `# AgentEverywhereFlow 执行审计报告\n\n`
       md += `- **会话 ID**: \`${session.session_id}\`\n`
-      md += `- **目标窗口**: ${session.target.title} (${session.target.rect.width}×${session.target.rect.height})\n`
+      md += `- **目标窗口**: ${formatTargetTitle(session.target.title, language)} (${session.target.rect.width}×${session.target.rect.height})\n`
       md += `- **执行模式**: \`${modeZh}\`\n`
       md += `- **总轮次**: ${session.turn_count}\n`
       md += `- **总步数**: ${session.total_steps}\n`
@@ -254,7 +293,7 @@ metadata:
 
     let md = `# AgentEverywhereFlow Execution Audit Report\n\n`
     md += `- **Session ID**: \`${session.session_id}\`\n`
-    md += `- **Target Window**: ${session.target.title} (${session.target.rect.width}×${session.target.rect.height})\n`
+    md += `- **Target Window**: ${formatTargetTitle(session.target.title, language)} (${session.target.rect.width}×${session.target.rect.height})\n`
     md += `- **Execution Mode**: \`${session.mode}\`\n`
     md += `- **Total Turns**: ${session.turn_count}\n`
     md += `- **Total Steps**: ${session.total_steps}\n`
@@ -354,9 +393,19 @@ metadata:
         dry_run: dryRun,
       })
       const stepCount = res.steps_executed ?? res.steps ?? 0
+      const kind =
+        res.status === 'dry_run'
+          ? 'dry_run'
+          : res.status === 'completed'
+          ? 'completed'
+          : 'workflow_status'
       setReplayStatus({
         loading: false,
         ok: res.status !== 'failed',
+        kind,
+        stepCount,
+        statusText: res.status,
+        errorText: res.error,
         message:
           res.status === 'dry_run'
             ? t('export.dryRunValidated').replace('{count}', String(stepCount))
@@ -371,6 +420,9 @@ metadata:
       setReplayStatus({
         loading: false,
         ok: false,
+        kind: 'error',
+        errorText: rawMsg,
+        isGenericErr,
         message:
           language === 'zh' && isGenericErr
             ? t('export.error')
@@ -380,8 +432,14 @@ metadata:
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden"
+      >
         {/* Header */}
         <div className="px-6 py-3.5 lg:py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">

@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Check, ShieldAlert, X } from 'lucide-react'
 import type { PendingApproval } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
+import { formatEventText } from '../i18n/translations'
 
 interface ApprovalGateProps {
   pending: PendingApproval | null
@@ -14,15 +15,26 @@ export const ApprovalGate: React.FC<ApprovalGateProps> = ({
   onApprove,
   onReject,
 }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [rejectReason, setRejectReason] = useState('')
   const [showReasonInput, setShowReasonInput] = useState(false)
+
+  useEffect(() => {
+    if (!showReasonInput) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowReasonInput(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [showReasonInput])
 
   if (!pending) return null
 
   const actionName = pending.action || pending.action_type || 'unknown'
   const actionParams = pending.params || pending.details || {}
-  const actionContext = pending.context || pending.description || ''
+  const actionContext = formatEventText(pending.context || pending.description || '', language)
 
   const handleReject = () => {
     onReject(rejectReason || undefined)

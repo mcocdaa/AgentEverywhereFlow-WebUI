@@ -10,6 +10,7 @@ import {
 import { api } from '../api/client'
 import type { ActionMarker, SessionDetail } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
+import { formatTargetTitle } from '../i18n/translations'
 
 interface ViewportMonitorProps {
   session: SessionDetail | null
@@ -26,7 +27,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
   onManualRefresh,
   onOpenNewSessionModal,
 }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [hoverCoords, setHoverCoords] = useState<{ x: number; y: number } | null>(null)
   const [autoRefresh, setAutoRefresh] = useState(false)
@@ -104,7 +105,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
         <div className="flex items-center gap-2 overflow-hidden">
           <Monitor className="w-4 h-4 text-indigo-400 shrink-0" />
           <span className="text-xs font-semibold text-slate-200 truncate">
-            {session ? session.target.title : t('viewport.noTarget')}
+            {session ? formatTargetTitle(session.target.title, language) : t('viewport.noTarget')}
           </span>
           {session && (
             <span className="text-[10px] text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded font-mono shrink-0">

@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import type { SessionDetail, SessionSummary } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
+import { formatTargetTitle } from '../i18n/translations'
 
 interface SessionSelectorProps {
   sessions: SessionSummary[]
@@ -33,7 +34,7 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
   onDeleteSession,
   onRenameSession,
 }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [isOpen, setIsOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null)
@@ -104,30 +105,30 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
     const q = searchQuery.trim().toLowerCase()
     if (!q) return sessions
     return sessions.filter((s) => {
-      const titleMatch = (s.title || '').toLowerCase().includes(q)
-      const targetTitleMatch = (s.target_title || '').toLowerCase().includes(q)
+      const titleMatch = formatTargetTitle(s.title || '', language).toLowerCase().includes(q) || (s.title || '').toLowerCase().includes(q)
+      const targetTitleMatch = formatTargetTitle(s.target_title || '', language).toLowerCase().includes(q) || (s.target_title || '').toLowerCase().includes(q)
       const targetIdMatch = (s.target_id || '').toLowerCase().includes(q)
       const idMatch = s.session_id.toLowerCase().includes(q)
       return titleMatch || targetTitleMatch || targetIdMatch || idMatch
     })
-  }, [sessions, searchQuery])
+  }, [sessions, searchQuery, language])
 
   // Current active session label
   const currentTitle = useMemo(() => {
     if (activeSession) {
-      return activeSession.title || activeSession.target.title
+      return formatTargetTitle(activeSession.title || activeSession.target.title, language)
     }
     const found = sessions.find((s) => s.session_id === activeSessionId)
     if (found) {
-      return found.title || found.target_title || found.session_id
+      return formatTargetTitle(found.title || found.target_title || found.session_id, language)
     }
     return sessions.length === 0 ? t('header.noActiveSessions') : t('header.newSession')
-  }, [activeSession, activeSessionId, sessions, t])
+  }, [activeSession, activeSessionId, sessions, t, language])
 
   const handleStartRename = (e: React.MouseEvent, s: SessionSummary) => {
     e.stopPropagation()
     setEditingSessionId(s.session_id)
-    setEditingTitle(s.title || s.target_title || s.session_id)
+    setEditingTitle(formatTargetTitle(s.title || s.target_title || s.session_id, language))
     setDeletingSessionId(null)
   }
 
@@ -331,7 +332,7 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
                         <>
                           <div className="flex items-center gap-2">
                             <span className="text-xs font-semibold truncate text-slate-100">
-                              {s.title || s.target_title || s.session_id}
+                              {formatTargetTitle(s.title || s.target_title || s.session_id, language)}
                             </span>
                             {isActive && (
                               <span className="text-[9px] font-bold text-indigo-400 bg-indigo-500/20 px-1.5 py-0.2 rounded border border-indigo-500/30 uppercase tracking-wider shrink-0">

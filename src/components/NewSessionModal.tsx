@@ -13,6 +13,7 @@ import {
 import { api } from '../api/client'
 import type { ExecutionMode, PermissionMode, TargetInfo } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
+import { formatTargetTitle, translations } from '../i18n/translations'
 
 interface NewSessionModalProps {
   isOpen: boolean
@@ -35,6 +36,33 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshedNotice, setRefreshedNotice] = useState(false)
+
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  useEffect(() => {
+    if (!error) return
+    const keys = [
+      'newSession.selectTargetError',
+      'newSession.fetchTargetsError',
+      'newSession.createSessionError',
+    ] as const
+    for (const k of keys) {
+      if (error === translations.en[k] || error === translations.zh[k]) {
+        const next = t(k)
+        if (next !== error) setError(next)
+        return
+      }
+    }
+  }, [language, error, t])
 
   const fetchTargets = useCallback(async () => {
     setLoading(true)
@@ -127,8 +155,14 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 lg:p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[94vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 lg:p-4"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[94vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+      >
         {/* Modal Header */}
         <div className="px-5 lg:px-6 py-3 lg:py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
@@ -248,7 +282,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                         </div>
                         <div className="truncate">
                           <div className="text-xs font-semibold text-slate-200 truncate flex items-center gap-2">
-                            <span>{target.title || t('newSession.untitledTarget')}</span>
+                            <span>{formatTargetTitle(target.title, language) || t('newSession.untitledTarget')}</span>
                             {target.title.includes('AgentEverywhereFlow Studio') && (
                               <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 rounded border border-cyan-500/20 shrink-0">
                                 {t('newSession.studioBadge')}
@@ -261,7 +295,15 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                             )}
                           </div>
                           <div className="text-[11px] text-slate-500 flex items-center gap-2 font-mono">
-                            <span>{target.process_name || target.target_type}</span>
+                            <span>
+                              {target.process_name &&
+                              target.process_name.toLowerCase() !== 'display' &&
+                              target.process_name.toLowerCase() !== 'window'
+                                ? target.process_name
+                                : target.target_type === 'display'
+                                ? t('newSession.targetTypeDisplay')
+                                : t('newSession.targetTypeWindow')}
+                            </span>
                             <span>•</span>
                             <span>
                               {target.rect.width}×{target.rect.height}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { CheckCircle2, Globe, RefreshCw, Server, X, AlertCircle } from 'lucide-react'
 import { api } from '../api/client'
 import { useLanguage } from '../i18n/LanguageContext'
@@ -19,6 +19,36 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
   const [url, setUrl] = useState(currentBase || '')
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
   const [testMessage, setTestMessage] = useState<string>('')
+  const [lastTestMeta, setLastTestMeta] = useState<{
+    version?: string
+    rawMsg?: string
+    isGenericErr?: boolean
+  }>({})
+
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, onClose])
+
+  useEffect(() => {
+    if (testStatus === 'success') {
+      const next = t('endpoint.connected').replace('{version}', lastTestMeta.version || '0.1.x')
+      if (next !== testMessage) setTestMessage(next)
+    } else if (testStatus === 'failed') {
+      const msg =
+        language === 'zh' && lastTestMeta.isGenericErr
+          ? t('header.offline')
+          : lastTestMeta.rawMsg || t('header.offline')
+      const next = t('endpoint.failed').replace('{msg}', msg)
+      if (next !== testMessage) setTestMessage(next)
+    }
+  }, [language, testStatus, lastTestMeta, testMessage, t])
 
   if (!isOpen) return null
 
@@ -33,14 +63,17 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
         throw new Error(`HTTP ${res.status}: ${res.statusText}`)
       }
       const data = await res.json()
+      const version = data.version || '0.1.x'
+      setLastTestMeta({ version })
       setTestStatus('success')
       setTestMessage(
-        t('endpoint.connected').replace('{version}', data.version || '0.1.x')
+        t('endpoint.connected').replace('{version}', version)
       )
     } catch (err: unknown) {
-      setTestStatus('failed')
       const rawMsg = err instanceof Error ? err.message : String(err)
       const isGenericErr = /^(Failed to fetch|NetworkError|HTTP \d+|Load failed)/i.test(rawMsg)
+      setLastTestMeta({ rawMsg, isGenericErr })
+      setTestStatus('failed')
       const msg = language === 'zh' && isGenericErr ? t('header.offline') : rawMsg
       setTestMessage(t('endpoint.failed').replace('{msg}', msg))
     }
@@ -59,8 +92,14 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col"
+      >
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
           <div className="flex items-center gap-2.5">

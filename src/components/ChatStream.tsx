@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import type { SessionEvent } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
+import { formatEventText, formatTargetTitle } from '../i18n/translations'
 
 interface ChatStreamProps {
   events: SessionEvent[]
@@ -22,7 +23,7 @@ interface ChatStreamProps {
 }
 
 export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [autoScroll, setAutoScroll] = useState(true)
@@ -70,7 +71,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
         <span className="text-cyan-300 font-semibold whitespace-nowrap">{callPart?.trim()}</span>
         {targetPart && (
           <span className="text-emerald-400 text-[10px] bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 whitespace-nowrap shrink-0">
-            ▶ {targetPart.trim()}
+            ▶ {formatEventText(targetPart.trim(), language)}
           </span>
         )}
       </div>
@@ -101,8 +102,8 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
 
           switch (ev.event_type) {
             case 'turn_start': {
-              const instruction = ev.payload.instruction as string
-              const targetTitle = (ev.payload.target_title as string) || ''
+              const instruction = formatEventText(ev.payload.instruction as string, language)
+              const targetTitle = formatTargetTitle((ev.payload.target_title as string) || '', language)
               return (
                 <div key={key} className="flex gap-2.5 lg:gap-3 justify-end items-start animate-in fade-in duration-150">
                   <div className="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-3 lg:px-3.5 py-1.5 lg:py-2 max-w-[88%] shadow-md">
@@ -124,7 +125,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
             }
 
             case 'reasoning': {
-              const thinking = ((ev.payload.thinking || ev.payload.content) as string) || ''
+              const thinking = formatEventText(((ev.payload.thinking || ev.payload.content) as string) || '', language)
               const isExpanded = expandedThinking[key] ?? true
               if (!thinking.trim()) return null
 
@@ -281,7 +282,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                     {remainingOutput && remainingOutput.trim() && (
                       <div className="font-mono text-[10px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800 whitespace-pre-wrap leading-snug">
                         <div className="text-[9px] text-slate-500 font-bold mb-0.5">{t('stream.stdout')}</div>
-                        {remainingOutput}
+                        {formatEventText(remainingOutput, language)}
                       </div>
                     )}
 
@@ -298,8 +299,10 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
 
             case 'talk':
             case 'message': {
-              const text =
-                ((ev.payload.text || ev.payload.message || ev.payload.content) as string) || ''
+              const text = formatEventText(
+                ((ev.payload.text || ev.payload.message || ev.payload.content) as string) || '',
+                language
+              )
               if (!text.trim()) return null
 
               return (
@@ -331,7 +334,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                 // Conversational turns are rendered via 'message' bubbles
                 return null
               }
-              const summary = ev.payload.summary as string
+              const summary = formatEventText(ev.payload.summary as string, language)
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
                   <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/30 mt-0.5">

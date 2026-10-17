@@ -112,11 +112,13 @@ export const translations = {
     'newSession.studioBadge': 'STUDIO',
     'newSession.executionMode': '2. Execution Engine Mode',
     'newSession.modeMinimal': 'Minimal Mode (CodeAct)',
-    'newSession.modeMinimalBadge': 'minimal',
+    'newSession.modeMinimalBadge': 'Minimal',
     'newSession.modeMinimalDesc': 'Executes Python REPL code blocks (click(), type_text()) directly in isolated runtime.',
     'newSession.modeGuarded': 'Guarded Mode (JSON Tools)',
-    'newSession.modeGuardedBadge': 'guarded',
+    'newSession.modeGuardedBadge': 'Guarded',
     'newSession.modeGuardedDesc': 'Structured tool calls validated against strict viewport boundaries and safety rules.',
+    'newSession.targetTypeDisplay': 'display',
+    'newSession.targetTypeWindow': 'window',
     'newSession.permissionMode': '3. Security & Permission Gate',
     'newSession.permAuto': 'Autonomous (Auto)',
     'newSession.permAutoDesc': 'Runs full multi-step loop without pausing for manual approvals.',
@@ -292,11 +294,13 @@ export const translations = {
     'newSession.studioBadge': '工作台',
     'newSession.executionMode': '2. 执行引擎模式',
     'newSession.modeMinimal': '极简模式 (CodeAct)',
-    'newSession.modeMinimalBadge': '极简模式',
+    'newSession.modeMinimalBadge': '极简执行',
     'newSession.modeMinimalDesc': '在隔离运行环境中直接执行 Python REPL 代码块 (click(), type_text())。',
     'newSession.modeGuarded': '受控模式 (JSON 工具)',
-    'newSession.modeGuardedBadge': '受控模式',
+    'newSession.modeGuardedBadge': '受控审批',
     'newSession.modeGuardedDesc': '返回结构化工具调用，通过严格的视口边界与安全规则校验后执行。',
+    'newSession.targetTypeDisplay': '显示器',
+    'newSession.targetTypeWindow': '窗口',
     'newSession.permissionMode': '3. 安全与权限门禁',
     'newSession.permAuto': '自主执行 (Auto)',
     'newSession.permAutoDesc': '连续运行多步感知与操作循环，无需暂停等待人工确认。',
@@ -356,3 +360,53 @@ export const translations = {
 } as const
 
 export type TranslationKey = keyof typeof translations.en
+
+/**
+ * Localize dynamic capture target titles (e.g. "Display 1 (2560x1600)" <-> "显示器 1 (2560x1600)")
+ * based on active UI language.
+ */
+export function formatTargetTitle(title: string | undefined | null, language: Language): string {
+  if (!title) return ''
+  if (language === 'zh') {
+    return title
+      .replace(/^Display\s+(\d+)\b/i, '显示器 $1')
+      .replace(/\bDisplay\s+(\d+)\s*\(/gi, '显示器 $1 (')
+      .replace(/^Primary Display\b/i, '主显示器')
+      .replace('Excel Q4 Revenue SUM', 'Excel 第四季度营收汇总')
+      .replace('Chrome - Q4 Financial Dashboard', 'Chrome - 第四季度财务看板')
+      .replace('AgentEverywhereFlow Studio', 'AgentEverywhereFlow 工作台')
+  }
+  return title
+    .replace(/^显示器\s*(\d+)/, 'Display $1')
+    .replace(/显示器\s*(\d+)\s*\(/g, 'Display $1 (')
+    .replace(/^主显示器/, 'Primary Display')
+    .replace('Excel 第四季度营收汇总', 'Excel Q4 Revenue SUM')
+    .replace('Chrome - 第四季度财务看板', 'Chrome - Q4 Financial Dashboard')
+    .replace('AgentEverywhereFlow 工作台', 'AgentEverywhereFlow Studio')
+}
+
+const EVENT_TEXT_ZH_MAP: Record<string, string> = {
+  'Calculate the total cost of all hardware items in D2:D6 and enter the SUM formula in cell D7.':
+    '计算 D2:D6 区域所有硬件项目的总成本，并在 D7 单元格中输入 SUM 求和公式。',
+  "[Observe] Isolated viewport (560×440) captured for 'Excel - Q4_Sales.xlsx'. Table A1:D7 lists 5 hardware items with cost column D2:D6.\n[Thought] Focus target cell D7 at (330, 261), inject '=SUM(D2:D6)', and press Enter.":
+    "[观察] 已捕获 'Excel - Q4_Sales.xlsx' 的隔离视口 (560×440)。表格 A1:D7 列出 5 项硬件及成本列 D2:D6。\n[思考] 聚焦目标单元格 D7 (330, 261)，注入公式 '=SUM(D2:D6)' 并按回车确认。",
+  "Inject formula '=SUM(D2:D6)' into cell D7 (330, 261) and press Enter":
+    "在单元格 D7 (330, 261) 注入公式 '=SUM(D2:D6)' 并按回车执行",
+  'Entered =SUM(D2:D6) into cell D7 and verified the total hardware cost across D2:D6 (131,978).':
+    '已在单元格 D7 输入 =SUM(D2:D6)，并校验 D2:D6 硬件总成本为 131,978。',
+  'Cell D7 Focused': '已聚焦单元格 D7',
+  'Formula Injected': '已注入公式',
+  'Evaluated: 131978': '计算结果: 131978',
+}
+
+/**
+ * Localize dynamic session event texts or descriptions when switching between EN and ZH.
+ */
+export function formatEventText(text: string | undefined | null, language: Language): string {
+  if (!text) return ''
+  if (language === 'zh' && EVENT_TEXT_ZH_MAP[text]) {
+    return EVENT_TEXT_ZH_MAP[text]
+  }
+  return formatTargetTitle(text, language)
+}
+
