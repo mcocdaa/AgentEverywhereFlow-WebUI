@@ -269,7 +269,11 @@ export function App() {
           </div>
 
           {/* Chat Event List */}
-          <ChatStream events={events} isExecuting={isExecuting && !pendingApproval} />
+          <ChatStream
+            sessionId={activeSessionId}
+            events={events}
+            isExecuting={isExecuting && !pendingApproval}
+          />
 
           {/* Docked Approval Gate OR Prompt Input Dock */}
           {pendingApproval ? (

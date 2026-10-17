@@ -155,7 +155,7 @@ export const translations = {
     'endpoint.title': 'Backend Endpoint Settings',
     'endpoint.subtitle': 'Configure connection to AEFlow service',
     'endpoint.apiUrl': 'Service Endpoint URL',
-    'endpoint.apiDesc': "Default is http://127.0.0.1:8000. If port 8000 is occupied, set to the port used by 'aef serve --port <port>'.",
+    'endpoint.apiDesc': "Defaults to current origin (or http://127.0.0.1:8000). Set a custom URL if connecting to a separate 'aef serve --port <port>' instance.",
     'endpoint.test': 'Test',
     'endpoint.quickPresets': 'Quick Presets',
     'endpoint.port': 'Port {port}',
@@ -337,7 +337,7 @@ export const translations = {
     'endpoint.title': '后端服务连接设置',
     'endpoint.subtitle': '配置与 AEFlow 服务的连接参数',
     'endpoint.apiUrl': '服务端点地址 (URL)',
-    'endpoint.apiDesc': "默认为 http://127.0.0.1:8000。若 8000 端口被占用，请设置为 'aef serve --port <port>' 所指定的端口。",
+    'endpoint.apiDesc': "默认自动跟随当前访问源（或 http://127.0.0.1:8000）。若连接到独立后端，请设置为 'aef serve --port <port>' 所指定的地址。",
     'endpoint.test': '测试连接',
     'endpoint.quickPresets': '快捷端口预设',
     'endpoint.port': '端口 {port}',
@@ -375,6 +375,10 @@ export function formatTargetTitle(title: string | undefined | null, language: La
       .replace('Excel Q4 Revenue SUM', 'Excel 第四季度营收汇总')
       .replace('Chrome - Q4 Financial Dashboard', 'Chrome - 第四季度财务看板')
       .replace('AgentEverywhereFlow Studio', 'AgentEverywhereFlow 工作台')
+      .replace(/[（(]\s*Verified\s*[)）]/gi, '(已核验)')
+      .replace(/[（(]\s*Audited\s*[)）]/gi, '(已审计)')
+      .replace(/[（(]\s*Completed\s*[)）]/gi, '(已完成)')
+      .replace(/\bVerified\b/gi, '已核验')
   }
   return title
     .replace(/^显示器\s*(\d+)/, 'Display $1')
@@ -383,30 +387,79 @@ export function formatTargetTitle(title: string | undefined | null, language: La
     .replace('Excel 第四季度营收汇总', 'Excel Q4 Revenue SUM')
     .replace('Chrome - 第四季度财务看板', 'Chrome - Q4 Financial Dashboard')
     .replace('AgentEverywhereFlow 工作台', 'AgentEverywhereFlow Studio')
+    .replace(/[（(]\s*已核验\s*[)）]/g, '(Verified)')
+    .replace(/[（(]\s*已审计\s*[)）]/g, '(Audited)')
+    .replace(/[（(]\s*已完成\s*[)）]/g, '(Completed)')
+    .replace(/已核验/g, 'Verified')
 }
 
-const EVENT_TEXT_ZH_MAP: Record<string, string> = {
-  'Calculate the total cost of all hardware items in D2:D6 and enter the SUM formula in cell D7.':
+const EVENT_TEXT_PAIRS: ReadonlyArray<[string, string]> = [
+  [
+    'Calculate the total cost of all hardware items in D2:D6 and enter the SUM formula in cell D7.',
     '计算 D2:D6 区域所有硬件项目的总成本，并在 D7 单元格中输入 SUM 求和公式。',
-  "[Observe] Isolated viewport (560×440) captured for 'Excel - Q4_Sales.xlsx'. Table A1:D7 lists 5 hardware items with cost column D2:D6.\n[Thought] Focus target cell D7 at (330, 261), inject '=SUM(D2:D6)', and press Enter.":
+  ],
+  [
+    "[Observe] Isolated viewport (560×440) captured for 'Excel - Q4_Sales.xlsx'. Table A1:D7 lists 5 hardware items with cost column D2:D6.\n[Thought] Focus target cell D7 at (330, 261), inject '=SUM(D2:D6)', and press Enter.",
     "[观察] 已捕获 'Excel - Q4_Sales.xlsx' 的隔离视口 (560×440)。表格 A1:D7 列出 5 项硬件及成本列 D2:D6。\n[思考] 聚焦目标单元格 D7 (330, 261)，注入公式 '=SUM(D2:D6)' 并按回车确认。",
-  "Inject formula '=SUM(D2:D6)' into cell D7 (330, 261) and press Enter":
+  ],
+  [
+    "Inject formula '=SUM(D2:D6)' into cell D7 (330, 261) and press Enter",
     "在单元格 D7 (330, 261) 注入公式 '=SUM(D2:D6)' 并按回车执行",
-  'Entered =SUM(D2:D6) into cell D7 and verified the total hardware cost across D2:D6 (131,978).':
+  ],
+  [
+    'Entered =SUM(D2:D6) into cell D7 and verified the total hardware cost across D2:D6 (131,978).',
     '已在单元格 D7 输入 =SUM(D2:D6)，并校验 D2:D6 硬件总成本为 131,978。',
-  'Cell D7 Focused': '已聚焦单元格 D7',
-  'Formula Injected': '已注入公式',
-  'Evaluated: 131978': '计算结果: 131978',
-}
+  ],
+  [
+    'Inspect active window layout and summarize UI',
+    '分析当前窗口界面布局与主要元素',
+  ],
+  [
+    'Click the primary search bar or input field',
+    '点击主搜索栏或文本输入框',
+  ],
+  [
+    'Take a fresh screenshot and check for error dialogs',
+    '截取最新快照并检查有无错误弹窗',
+  ],
+  ['Cell D7 Focused', '已聚焦单元格 D7'],
+  ['Formula Injected', '已注入公式'],
+  ['Evaluated: 131978', '计算结果: 131978'],
+]
+
+const EVENT_EN_TO_ZH_MAP: Record<string, string> = Object.fromEntries(EVENT_TEXT_PAIRS)
+const EVENT_ZH_TO_EN_MAP: Record<string, string> = Object.fromEntries(
+  EVENT_TEXT_PAIRS.map(([en, zh]) => [zh, en])
+)
 
 /**
  * Localize dynamic session event texts or descriptions when switching between EN and ZH.
  */
 export function formatEventText(text: string | undefined | null, language: Language): string {
   if (!text) return ''
-  if (language === 'zh' && EVENT_TEXT_ZH_MAP[text]) {
-    return EVENT_TEXT_ZH_MAP[text]
+  const normalized = text.replace(/\r\n/g, '\n')
+  if (language === 'zh') {
+    if (EVENT_EN_TO_ZH_MAP[normalized]) {
+      return EVENT_EN_TO_ZH_MAP[normalized]
+    }
+    let out = normalized
+    for (const [en, zh] of EVENT_TEXT_PAIRS) {
+      if (out.includes(en)) {
+        out = out.split(en).join(zh)
+      }
+    }
+    return formatTargetTitle(out, language)
   }
-  return formatTargetTitle(text, language)
+  if (EVENT_ZH_TO_EN_MAP[normalized]) {
+    return EVENT_ZH_TO_EN_MAP[normalized]
+  }
+  let out = normalized
+  for (const [en, zh] of EVENT_TEXT_PAIRS) {
+    if (out.includes(zh)) {
+      out = out.split(zh).join(en)
+    }
+  }
+  return formatTargetTitle(out, language)
 }
+
 

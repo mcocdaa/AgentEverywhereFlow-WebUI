@@ -133,7 +133,10 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
                   setUrl(e.target.value)
                   setTestStatus('idle')
                 }}
-                placeholder="http://127.0.0.1:8000"
+                placeholder={
+                  currentBase ||
+                  (typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:8000')
+                }
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 font-mono transition"
               />
               <button

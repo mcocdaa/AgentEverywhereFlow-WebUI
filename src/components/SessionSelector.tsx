@@ -346,11 +346,17 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
                             </span>
                             <span>•</span>
                             <span>
-                              {s.turn_count} {t('sessions.turns')}
+                              {s.turn_count}{' '}
+                              {language === 'en' && s.turn_count === 1
+                                ? 'turn'
+                                : t('sessions.turns')}
                             </span>
                             <span>•</span>
                             <span>
-                              {s.total_steps} {t('sessions.steps')}
+                              {s.total_steps}{' '}
+                              {language === 'en' && s.total_steps === 1
+                                ? 'step'
+                                : t('sessions.steps')}
                             </span>
                           </div>
                         </>
@@ -377,7 +383,7 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
                               ) : (
                                 <Trash2 className="w-3 h-3" />
                               )}
-                              <span>{t('sessions.delete')}</span>
+                              <span>{t('sessions.confirmDelete')}</span>
                             </button>
                             <button
                               type="button"
@@ -419,7 +425,9 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
           {/* 3. Popover Footer */}
           <div className="p-2.5 px-3 border-t border-slate-800/80 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
             <span className="text-[11px] text-slate-400">
-              {t('sessions.total').replace('{count}', String(sessions.length))}
+              {language === 'en' && sessions.length === 1
+                ? 'Total 1 session'
+                : t('sessions.total').replace('{count}', String(sessions.length))}
             </span>
 
             <button

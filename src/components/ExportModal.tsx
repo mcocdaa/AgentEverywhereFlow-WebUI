@@ -3,7 +3,7 @@ import { Check, Copy, Download, FileCode, FileJson, FileText, Play, X } from 'lu
 import { api } from '../api/client'
 import type { SessionDetail, SessionEvent } from '../api/types'
 import { useLanguage } from '../i18n/LanguageContext'
-import { formatTargetTitle } from '../i18n/translations'
+import { formatEventText, formatTargetTitle } from '../i18n/translations'
 
 interface ExportModalProps {
   isOpen: boolean
@@ -251,6 +251,14 @@ metadata:
     }
 
     // Markdown format
+    const rawTargetTitle = formatTargetTitle(session.target.title, language)
+    const hasResolution =
+      rawTargetTitle.includes(`${session.target.rect.width}x${session.target.rect.height}`) ||
+      rawTargetTitle.includes(`${session.target.rect.width}×${session.target.rect.height}`)
+    const targetDisplay = hasResolution
+      ? rawTargetTitle
+      : `${rawTargetTitle} (${session.target.rect.width}×${session.target.rect.height})`
+
     if (language === 'zh') {
       const modeZh =
         session.mode === 'minimal'
@@ -260,7 +268,7 @@ metadata:
           : session.mode
       let md = `# AgentEverywhereFlow 执行审计报告\n\n`
       md += `- **会话 ID**: \`${session.session_id}\`\n`
-      md += `- **目标窗口**: ${formatTargetTitle(session.target.title, language)} (${session.target.rect.width}×${session.target.rect.height})\n`
+      md += `- **目标窗口**: ${targetDisplay}\n`
       md += `- **执行模式**: \`${modeZh}\`\n`
       md += `- **总轮次**: ${session.turn_count}\n`
       md += `- **总步数**: ${session.total_steps}\n`
@@ -269,9 +277,9 @@ metadata:
 
       events.forEach((ev) => {
         if (ev.event_type === 'turn_start') {
-          md += `### 🎯 操作员指令 (第 ${ev.payload.turn || 1} 轮)\n\n> ${ev.payload.instruction}\n\n`
+          md += `### 🎯 操作员指令 (第 ${ev.payload.turn || 1} 轮)\n\n> ${formatEventText(ev.payload.instruction as string, language)}\n\n`
         } else if (ev.event_type === 'reasoning') {
-          md += `#### 🧠 智能体推理 (步骤 ${ev.step})\n\n${ev.payload.thinking}\n\n`
+          md += `#### 🧠 智能体推理 (步骤 ${ev.step})\n\n${formatEventText((ev.payload.thinking || ev.payload.content) as string, language)}\n\n`
         } else if (ev.event_type === 'action_proposed') {
           const { code, action, params } = extractActionDetails(ev)
           md += `#### ⚡ 提议动作\n\n\`\`\`python\n${
@@ -281,10 +289,15 @@ metadata:
           md += `- **执行结果**: \`${
             ev.payload.rejected ? '已拒绝' : ev.payload.success ? '成功' : '失败'
           }\`\n`
-          if (ev.payload.output) md += `  \`\`\`\n  ${ev.payload.output}\n  \`\`\`\n`
+          if (ev.payload.output) {
+            md += `  \`\`\`\n  ${formatEventText(ev.payload.output as string, language)}\n  \`\`\`\n`
+          }
+          if (ev.payload.error) {
+            md += `  \`\`\`\n  ${formatEventText(ev.payload.error as string, language)}\n  \`\`\`\n`
+          }
           md += `\n`
         } else if (ev.event_type === 'task_completed') {
-          md += `### ✅ 任务完成\n\n${ev.payload.summary}\n\n---\n\n`
+          md += `### ✅ 任务完成\n\n${formatEventText(ev.payload.summary as string, language)}\n\n---\n\n`
         }
       })
 
@@ -293,7 +306,7 @@ metadata:
 
     let md = `# AgentEverywhereFlow Execution Audit Report\n\n`
     md += `- **Session ID**: \`${session.session_id}\`\n`
-    md += `- **Target Window**: ${formatTargetTitle(session.target.title, language)} (${session.target.rect.width}×${session.target.rect.height})\n`
+    md += `- **Target Window**: ${targetDisplay}\n`
     md += `- **Execution Mode**: \`${session.mode}\`\n`
     md += `- **Total Turns**: ${session.turn_count}\n`
     md += `- **Total Steps**: ${session.total_steps}\n`
@@ -302,9 +315,9 @@ metadata:
 
     events.forEach((ev) => {
       if (ev.event_type === 'turn_start') {
-        md += `### 🎯 Operator Instruction (Turn ${ev.payload.turn || 1})\n\n> ${ev.payload.instruction}\n\n`
+        md += `### 🎯 Operator Instruction (Turn ${ev.payload.turn || 1})\n\n> ${formatEventText(ev.payload.instruction as string, language)}\n\n`
       } else if (ev.event_type === 'reasoning') {
-        md += `#### 🧠 Reasoning (Step ${ev.step})\n\n${ev.payload.thinking}\n\n`
+        md += `#### 🧠 Reasoning (Step ${ev.step})\n\n${formatEventText((ev.payload.thinking || ev.payload.content) as string, language)}\n\n`
       } else if (ev.event_type === 'action_proposed') {
         const { code, action, params } = extractActionDetails(ev)
         md += `#### ⚡ Proposed Action\n\n\`\`\`python\n${
@@ -314,10 +327,15 @@ metadata:
         md += `- **Execution Output**: \`${
           ev.payload.rejected ? 'REJECTED' : ev.payload.success ? 'SUCCESS' : 'FAILED'
         }\`\n`
-        if (ev.payload.output) md += `  \`\`\`\n  ${ev.payload.output}\n  \`\`\`\n`
+        if (ev.payload.output) {
+          md += `  \`\`\`\n  ${formatEventText(ev.payload.output as string, language)}\n  \`\`\`\n`
+        }
+        if (ev.payload.error) {
+          md += `  \`\`\`\n  ${formatEventText(ev.payload.error as string, language)}\n  \`\`\`\n`
+        }
         md += `\n`
       } else if (ev.event_type === 'task_completed') {
-        md += `### ✅ Task Completed\n\n${ev.payload.summary}\n\n---\n\n`
+        md += `### ✅ Task Completed\n\n${formatEventText(ev.payload.summary as string, language)}\n\n---\n\n`
       }
     })
 
@@ -330,7 +348,7 @@ metadata:
     const fallback = buildContent(format)
     setContent(fallback)
 
-    if (format === 'python' || format === 'yaml' || (format === 'markdown' && language === 'en')) {
+    if (format === 'python' || format === 'yaml') {
       api
         .exportSession(session.session_id, format)
         .then((res) => {

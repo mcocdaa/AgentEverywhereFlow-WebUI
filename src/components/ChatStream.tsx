@@ -18,31 +18,48 @@ import { useLanguage } from '../i18n/LanguageContext'
 import { formatEventText, formatTargetTitle } from '../i18n/translations'
 
 interface ChatStreamProps {
+  sessionId?: string | null
   events: SessionEvent[]
   isExecuting: boolean
 }
 
-export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) => {
+export const ChatStream: React.FC<ChatStreamProps> = ({ sessionId, events, isExecuting }) => {
   const { t, language } = useLanguage()
   const bottomRef = useRef<HTMLDivElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const prevSessionIdRef = useRef<string | null>(null)
+  const prevEventsLenRef = useRef<number>(0)
+  const sessionLoadTimeRef = useRef<number>(0)
   const [autoScroll, setAutoScroll] = useState(true)
   const [expandedThinking, setExpandedThinking] = useState<Record<string, boolean>>({})
 
-  // Auto-scroll logic: avoid small scroll offsets that clip the first message header
+  // Auto-scroll logic: scroll to top on initial session load so the top OPERATOR bubble is never clipped,
+  // and only scroll to bottom when new events append within the same active session after initial load.
   useEffect(() => {
-    if (!autoScroll || !containerRef.current) return
     const el = containerRef.current
-    const overflow = el.scrollHeight - el.clientHeight
-    const hasCompletedOrExecuted = events.some(
-      (e) => e.event_type === 'action_executed' || e.event_type === 'task_completed'
-    )
-    if (!hasCompletedOrExecuted || overflow <= 48) {
+    if (!el) return
+    const currentSessionId = sessionId ?? events[0]?.session_id ?? null
+
+    if (currentSessionId !== prevSessionIdRef.current) {
+      prevSessionIdRef.current = currentSessionId
+      prevEventsLenRef.current = events.length
+      sessionLoadTimeRef.current = Date.now()
       el.scrollTop = 0
-    } else {
+      return
+    }
+
+    const prevLen = prevEventsLenRef.current
+    prevEventsLenRef.current = events.length
+
+    if (prevLen === 0 || Date.now() - sessionLoadTimeRef.current < 400) {
+      el.scrollTop = 0
+      return
+    }
+
+    if (events.length > prevLen && autoScroll) {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
     }
-  }, [events, autoScroll])
+  }, [sessionId, events, autoScroll])
 
   const handleScroll = () => {
     if (!containerRef.current) return
