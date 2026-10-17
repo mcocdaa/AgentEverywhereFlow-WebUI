@@ -100,7 +100,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
       }`}
     >
       {/* Viewport Top Bar */}
-      <div className="h-11 px-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between select-none">
+      <div className="h-9 lg:h-11 px-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between select-none">
         <div className="flex items-center gap-2 overflow-hidden">
           <Monitor className="w-4 h-4 text-indigo-400 shrink-0" />
           <span className="text-xs font-semibold text-slate-200 truncate">
@@ -186,7 +186,7 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
             <img
               ref={imgRef}
               src={imgUrl}
-              alt="Viewport frame"
+              alt={t('viewport.title')}
               onLoad={() => setLoading(false)}
               onError={() => setLoading(false)}
               onMouseMove={handleMouseMove}

@@ -28,12 +28,15 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
   const [autoScroll, setAutoScroll] = useState(true)
   const [expandedThinking, setExpandedThinking] = useState<Record<string, boolean>>({})
 
-  // Auto-scroll logic: avoid tiny scroll offsets that clip the first message header
+  // Auto-scroll logic: avoid small scroll offsets that clip the first message header
   useEffect(() => {
     if (!autoScroll || !containerRef.current) return
     const el = containerRef.current
     const overflow = el.scrollHeight - el.clientHeight
-    if (overflow <= 36) {
+    const hasCompletedOrExecuted = events.some(
+      (e) => e.event_type === 'action_executed' || e.event_type === 'task_completed'
+    )
+    if (!hasCompletedOrExecuted || overflow <= 48) {
       el.scrollTop = 0
     } else {
       el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
@@ -78,7 +81,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
     <div
       ref={containerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto pt-3.5 pb-3 px-4 space-y-2 font-sans text-xs select-text"
+      className="flex-1 overflow-y-auto pt-2.5 lg:pt-3.5 pb-2.5 lg:pb-3 px-3 lg:px-4 space-y-1.5 lg:space-y-2 font-sans text-xs select-text"
     >
       {events.length === 0 ? (
         <div className="h-full flex flex-col items-center justify-center text-center p-8 space-y-3">
@@ -101,8 +104,8 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
               const instruction = ev.payload.instruction as string
               const targetTitle = (ev.payload.target_title as string) || ''
               return (
-                <div key={key} className="flex gap-3 justify-end items-start animate-in fade-in duration-150">
-                  <div className="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-3.5 py-2 max-w-[88%] shadow-md">
+                <div key={key} className="flex gap-2.5 lg:gap-3 justify-end items-start animate-in fade-in duration-150">
+                  <div className="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-3 lg:px-3.5 py-1.5 lg:py-2 max-w-[88%] shadow-md">
                     <div className="flex items-center justify-between gap-2 mb-0.5">
                       <span className="text-[10px] font-semibold text-indigo-200 whitespace-nowrap shrink-0">{t('stream.operator')}</span>
                       {targetTitle && (
@@ -111,10 +114,10 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                         </span>
                       )}
                     </div>
-                    <div className="text-xs leading-snug whitespace-pre-wrap">{instruction}</div>
+                    <div className="text-[11px] lg:text-xs leading-snug whitespace-pre-wrap">{instruction}</div>
                   </div>
-                  <div className="w-7 h-7 rounded-lg bg-indigo-500 flex items-center justify-center text-white shrink-0 mt-0.5">
-                    <User className="w-4 h-4" />
+                  <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-lg bg-indigo-500 flex items-center justify-center text-white shrink-0 mt-0.5">
+                    <User className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                   </div>
                 </div>
               )
@@ -126,16 +129,16 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
               if (!thinking.trim()) return null
 
               return (
-                <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
-                  <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30 mt-0.5">
-                    <BrainCircuit className="w-4 h-4" />
+                <div key={key} className="flex gap-2.5 lg:gap-3 items-start animate-in fade-in duration-150">
+                  <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0 border border-purple-500/30 mt-0.5">
+                    <BrainCircuit className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                   </div>
                   <div className="flex-1 min-w-0 bg-slate-900 border border-purple-500/20 rounded-2xl rounded-tl-sm overflow-hidden shadow-sm">
                     <div
                       onClick={() => toggleThinking(key)}
-                      className="px-3 py-1.5 bg-purple-950/20 flex items-center justify-between cursor-pointer select-none border-b border-purple-500/10 hover:bg-purple-950/30 transition"
+                      className="px-2.5 lg:px-3 py-1 lg:py-1.5 bg-purple-950/20 flex items-center justify-between cursor-pointer select-none border-b border-purple-500/10 hover:bg-purple-950/30 transition"
                     >
-                      <div className="flex items-center gap-2 text-purple-300 font-semibold text-[11px] min-w-0">
+                      <div className="flex items-center gap-1.5 lg:gap-2 text-purple-300 font-semibold text-[11px] min-w-0">
                         <Sparkles className="w-3.5 h-3.5 text-purple-400 shrink-0" />
                         <span className="truncate">{t('stream.agentReasoning')}</span>
                       </div>
@@ -151,7 +154,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                       </div>
                     </div>
                     {isExpanded && (
-                      <div className="p-2 text-[11px] text-slate-200 whitespace-pre-wrap leading-snug bg-slate-950/60 font-sans">
+                      <div className="p-1.5 lg:p-2 text-[10px] lg:text-[11px] text-slate-200 whitespace-pre-wrap leading-snug bg-slate-950/60 font-sans">
                         {thinking}
                       </div>
                     )}
@@ -182,12 +185,12 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                   : {})
 
               return (
-                <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
-                  <div className="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30 mt-0.5">
-                    <Code2 className="w-4 h-4" />
+                <div key={key} className="flex gap-2.5 lg:gap-3 items-start animate-in fade-in duration-150">
+                  <div className="w-6 h-6 lg:w-7 lg:h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-500/30 mt-0.5">
+                    <Code2 className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                   </div>
                   <div className="flex-1 min-w-0 bg-slate-900 border border-amber-500/30 rounded-2xl rounded-tl-sm overflow-hidden shadow-sm">
-                    <div className="px-3 py-1.5 bg-amber-950/20 flex items-center justify-between gap-2 border-b border-amber-500/20">
+                    <div className="px-2.5 lg:px-3 py-1 lg:py-1.5 bg-amber-950/20 flex items-center justify-between gap-2 border-b border-amber-500/20">
                       <div className="flex items-center gap-1.5 text-[11px] font-mono text-amber-300 font-semibold min-w-0">
                         <Play className="w-3 h-3 text-amber-400 shrink-0" />
                         <span className="truncate">⚡ {code ? t('stream.executingCodeAct') : `${t('stream.action')}: ${action}`}</span>
@@ -195,7 +198,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                       <span className="text-[10px] text-amber-400/80 font-mono whitespace-nowrap shrink-0">{t('stream.step')} {ev.step}</span>
                     </div>
 
-                    <div className="p-2.5 bg-slate-950 font-mono text-[11px] text-emerald-300 overflow-x-auto leading-snug">
+                    <div className="p-2 lg:p-2.5 bg-slate-950 font-mono text-[10px] lg:text-[11px] text-emerald-300 overflow-x-auto leading-snug">
                       {code ? (
                         <pre className="whitespace-pre">{code}</pre>
                       ) : (
@@ -277,14 +280,14 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
                     {/* Standard text output if present */}
                     {remainingOutput && remainingOutput.trim() && (
                       <div className="font-mono text-[10px] text-slate-300 bg-slate-950 p-2 rounded-lg border border-slate-800 whitespace-pre-wrap leading-snug">
-                        <div className="text-[9px] text-slate-500 font-bold mb-0.5">STDOUT</div>
+                        <div className="text-[9px] text-slate-500 font-bold mb-0.5">{t('stream.stdout')}</div>
                         {remainingOutput}
                       </div>
                     )}
 
                     {error && (
                       <div className="font-mono text-[10px] text-rose-300 bg-rose-950/40 p-2 rounded-lg border border-rose-500/30 whitespace-pre-wrap leading-snug">
-                        <div className="text-[9px] text-rose-400 font-bold mb-0.5">ERROR TRACE</div>
+                        <div className="text-[9px] text-rose-400 font-bold mb-0.5">{t('stream.errorTrace')}</div>
                         {error}
                       </div>
                     )}
@@ -347,7 +350,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ events, isExecuting }) =
             }
 
             case 'aborted': {
-              const msg = (ev.payload.message as string) || 'Execution aborted by operator.'
+              const msg = (ev.payload.message as string) || t('stream.abortedDefault')
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
                   <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30 mt-0.5">

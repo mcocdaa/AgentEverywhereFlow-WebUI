@@ -71,11 +71,11 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
       setRefreshedNotice(true)
       setTimeout(() => setRefreshedNotice(false), 2000)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch targets')
+      setError(err instanceof Error ? err.message : t('newSession.fetchTargetsError'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     if (isOpen) {
@@ -106,23 +106,23 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
       onSessionCreated(session.session_id)
       onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create session')
+      setError(err instanceof Error ? err.message : t('newSession.createSessionError'))
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 lg:p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[94vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         {/* Modal Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-5 lg:px-6 py-3 lg:py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
               <Layers className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white">{t('newSession.title')}</h2>
+              <h2 className="text-sm lg:text-base font-semibold text-white">{t('newSession.title')}</h2>
               <p className="text-xs text-slate-400">
                 {t('newSession.subtitle')}
               </p>
@@ -137,7 +137,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
         </div>
 
         {/* Modal Content */}
-        <div className="p-6 space-y-5 overflow-y-auto flex-1">
+        <div className="p-4 lg:p-6 space-y-3 lg:space-y-5 overflow-y-auto flex-1 min-h-0">
           {error && (
             <div className="p-3 text-xs bg-rose-500/10 border border-rose-500/30 text-rose-300 rounded-lg">
               {error}
@@ -146,7 +146,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
 
           {/* 1. Target Selector */}
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5 lg:mb-2">
               <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
                 {t('newSession.selectTarget')}
               </label>
@@ -200,7 +200,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
             </div>
 
             {/* Target List Grid */}
-            <div className="grid grid-cols-1 gap-2 max-h-52 overflow-y-auto pr-1">
+            <div className="grid grid-cols-1 gap-1.5 lg:gap-2 max-h-44 lg:max-h-52 overflow-y-auto pr-1">
               {filteredTargets.length === 0 ? (
                 <div className="text-center py-8 text-xs text-slate-500 bg-slate-950/40 rounded-xl border border-slate-800/80">
                   {loading ? t('newSession.discovering') : t('newSession.noTargets')}
@@ -212,7 +212,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                     <div
                       key={target.target_id}
                       onClick={() => setSelectedTargetId(target.target_id)}
-                      className={`p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${
+                      className={`p-2 lg:p-3 rounded-xl border cursor-pointer transition flex items-center justify-between ${
                         isSelected
                           ? 'bg-indigo-600/15 border-indigo-500/60 shadow-md shadow-indigo-500/5'
                           : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700 hover:bg-slate-950/80'
@@ -220,7 +220,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                     >
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div
-                          className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                          className={`w-8 h-8 lg:w-9 lg:h-9 rounded-lg flex items-center justify-center shrink-0 ${
                             isSelected
                               ? 'bg-indigo-600 text-white'
                               : 'bg-slate-800 text-slate-400'
@@ -237,7 +237,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                             <span>{target.title || t('newSession.untitledTarget')}</span>
                             {target.title.includes('AgentEverywhereFlow Studio') && (
                               <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 rounded border border-cyan-500/20 shrink-0">
-                                Studio
+                                {t('newSession.studioBadge')}
                               </span>
                             )}
                             {target.is_minimized && (
@@ -270,40 +270,40 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
 
           {/* 2. Execution Mode Selection */}
           <div>
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
+            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5 lg:mb-2">
               {t('newSession.executionMode')}
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5 lg:gap-3">
               <div
                 onClick={() => setMode('minimal')}
-                className={`p-3.5 rounded-xl border cursor-pointer transition ${
+                className={`p-2.5 lg:p-3.5 rounded-xl border cursor-pointer transition ${
                   mode === 'minimal'
                     ? 'bg-indigo-600/15 border-indigo-500/60 shadow-sm'
                     : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-2 mb-1">
                   <Code2 className="w-4 h-4 text-indigo-400" />
                   <span className="text-xs font-semibold text-white">{t('newSession.modeMinimal')}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-slate-400 leading-snug lg:leading-relaxed">
                   {t('newSession.modeMinimalDesc')}
                 </p>
               </div>
 
               <div
                 onClick={() => setMode('guarded')}
-                className={`p-3.5 rounded-xl border cursor-pointer transition ${
+                className={`p-2.5 lg:p-3.5 rounded-xl border cursor-pointer transition ${
                   mode === 'guarded'
                     ? 'bg-indigo-600/15 border-indigo-500/60 shadow-sm'
                     : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-2 mb-1">
                   <Layers className="w-4 h-4 text-purple-400" />
                   <span className="text-xs font-semibold text-white">{t('newSession.modeGuarded')}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-slate-400 leading-snug lg:leading-relaxed">
                   {t('newSession.modeGuardedDesc')}
                 </p>
               </div>
@@ -312,40 +312,40 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
 
           {/* 3. Permission Gate Mode */}
           <div>
-            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
+            <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-1.5 lg:mb-2">
               {t('newSession.permissionMode')}
             </label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2.5 lg:gap-3">
               <div
                 onClick={() => setPermissionMode('auto')}
-                className={`p-3.5 rounded-xl border cursor-pointer transition ${
+                className={`p-2.5 lg:p-3.5 rounded-xl border cursor-pointer transition ${
                   permissionMode === 'auto'
                     ? 'bg-emerald-600/15 border-emerald-500/60 shadow-sm'
                     : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-2 mb-1">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   <span className="text-xs font-semibold text-white">{t('newSession.permAuto')}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-slate-400 leading-snug lg:leading-relaxed">
                   {t('newSession.permAutoDesc')}
                 </p>
               </div>
 
               <div
                 onClick={() => setPermissionMode('manual')}
-                className={`p-3.5 rounded-xl border cursor-pointer transition ${
+                className={`p-2.5 lg:p-3.5 rounded-xl border cursor-pointer transition ${
                   permissionMode === 'manual'
                     ? 'bg-amber-600/15 border-amber-500/60 shadow-sm'
                     : 'bg-slate-950/50 border-slate-800/80 hover:border-slate-700'
                 }`}
               >
-                <div className="flex items-center gap-2 mb-1.5">
+                <div className="flex items-center gap-2 mb-1">
                   <ShieldAlert className="w-4 h-4 text-amber-400" />
                   <span className="text-xs font-semibold text-white">{t('newSession.permManual')}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-slate-400 leading-snug lg:leading-relaxed">
                   {t('newSession.permManualDesc')}
                 </p>
               </div>
@@ -354,17 +354,17 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-end gap-3">
+        <div className="px-5 lg:px-6 py-3 lg:py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-end gap-3 shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+            className="px-4 py-1.5 lg:py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800 transition cursor-pointer"
           >
             {t('newSession.cancel')}
           </button>
           <button
             onClick={handleCreate}
             disabled={submitting || !selectedTargetId}
-            className="px-5 py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+            className="px-5 py-1.5 lg:py-2 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
           >
             {submitting ? (
               <>

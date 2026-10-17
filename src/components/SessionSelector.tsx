@@ -176,12 +176,12 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
   }
 
   return (
-    <div ref={containerRef} className="relative select-none">
+    <div ref={containerRef} className="relative select-none min-w-0">
       {/* Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center gap-2 px-2.5 lg:px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer shadow-sm border max-w-[200px] lg:max-w-[260px] xl:max-w-[340px] truncate ${
+        className={`flex items-center gap-1.5 lg:gap-2 px-2.5 lg:px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer shadow-sm border max-w-[165px] lg:max-w-[260px] xl:max-w-[340px] truncate ${
           isOpen
             ? 'bg-slate-900 border-indigo-500 text-white shadow-indigo-500/20'
             : 'bg-slate-950/80 hover:bg-slate-900 text-slate-200 border-slate-700/80 hover:border-slate-600'
@@ -199,7 +199,7 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
         </span>
 
         {activeSessionId && (
-          <span className="text-[10px] text-slate-400 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 shrink-0">
+          <span className="hidden lg:inline-block text-[10px] text-slate-400 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800 shrink-0">
             {activeSessionId.slice(0, 8)}
           </span>
         )}

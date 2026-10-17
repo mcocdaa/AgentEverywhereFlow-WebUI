@@ -240,7 +240,7 @@ export function App() {
       />
 
       {/* 2. Main Workspace Layout */}
-      <main className="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden">
+      <main className="flex-1 grid grid-cols-12 gap-3 lg:gap-4 p-2.5 lg:p-4 overflow-hidden">
         {/* Left: Viewport Monitor (7 columns) */}
         <section className="col-span-12 md:col-span-7 h-full overflow-hidden">
           <ViewportMonitor
@@ -254,7 +254,7 @@ export function App() {
 
         {/* Right: Interaction Stream & Prompt Input (5 columns) */}
         <section className="col-span-12 md:col-span-5 h-full flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="h-11 px-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between select-none shrink-0">
+          <div className="h-9 lg:h-11 px-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between select-none shrink-0">
             <span className="text-xs font-semibold text-slate-200 whitespace-nowrap">{t('stream.title')}</span>
             {activeSession && (
               <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded font-mono whitespace-nowrap shrink-0">

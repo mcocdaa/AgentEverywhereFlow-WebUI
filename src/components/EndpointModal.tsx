@@ -123,7 +123,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
                     : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-800'
                 }`}
               >
-                Port 8000
+                {t('endpoint.port').replace('{port}', '8000')}
               </button>
               <button
                 type="button"
@@ -134,7 +134,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
                     : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-800'
                 }`}
               >
-                Port 8001
+                {t('endpoint.port').replace('{port}', '8001')}
               </button>
               <button
                 type="button"
@@ -145,7 +145,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
                     : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-800'
                 }`}
               >
-                Port 8002
+                {t('endpoint.port').replace('{port}', '8002')}
               </button>
             </div>
           </div>

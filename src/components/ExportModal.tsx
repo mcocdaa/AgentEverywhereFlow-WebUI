@@ -319,25 +319,25 @@ metadata:
         ok: res.status !== 'failed',
         message:
           res.status === 'dry_run'
-            ? `✓ Dry-Run validated (${stepCount} steps ready)`
+            ? t('export.dryRunValidated').replace('{count}', String(stepCount))
             : res.status === 'completed'
-            ? `✓ Replayed ${stepCount} steps successfully`
-            : `⚠ Workflow status: ${res.status}${res.error ? ` (${res.error})` : ''}`,
+            ? t('export.replayedSuccess').replace('{count}', String(stepCount))
+            : `${t('export.workflowStatus').replace('{status}', res.status)}${res.error ? ` (${res.error})` : ''}`,
       })
     } catch (err) {
       setReplayStatus({
         loading: false,
         ok: false,
-        message: err instanceof Error ? err.message : 'Replay request failed',
+        message: err instanceof Error ? err.message : t('export.replayFailed'),
       })
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+        <div className="px-6 py-3.5 lg:py-4 border-b border-slate-800 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
               <Download className="w-4 h-4" />
@@ -356,7 +356,7 @@ metadata:
         </div>
 
         {/* Format Selector Tabs */}
-        <div className="px-6 pt-4 flex items-center gap-2 overflow-x-auto scrollbar-none">
+        <div className="px-6 pt-3.5 lg:pt-4 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0">
           <button
             onClick={() => setFormat('python')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
@@ -407,10 +407,10 @@ metadata:
         </div>
 
         {/* Code Preview */}
-        <div className="p-6 flex-1 overflow-hidden flex flex-col gap-3">
+        <div className="p-4 lg:p-6 flex-1 min-h-0 overflow-hidden flex flex-col gap-2.5 lg:gap-3">
           {replayStatus.message && (
             <div
-              className={`px-3.5 py-2 rounded-lg text-xs font-mono border ${
+              className={`px-3.5 py-2 rounded-lg text-xs font-mono border shrink-0 ${
                 replayStatus.ok
                   ? 'bg-emerald-950/50 border-emerald-500/30 text-emerald-300'
                   : 'bg-rose-950/50 border-rose-500/30 text-rose-300'
@@ -419,13 +419,13 @@ metadata:
               {replayStatus.message}
             </div>
           )}
-          <div className="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-[11px] text-slate-300 overflow-y-auto whitespace-pre">
+          <div className="flex-1 min-h-0 bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-[11px] text-slate-300 overflow-y-auto whitespace-pre">
             {content}
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between gap-2">
+        <div className="px-6 py-3.5 lg:py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between gap-2 shrink-0">
           <span className="text-[11px] text-slate-500 font-mono whitespace-nowrap shrink-0">
             {t('export.eventsRecorded').replace('{count}', String(events.length))}
           </span>
