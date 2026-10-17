@@ -242,7 +242,7 @@ export function App() {
       {/* 2. Main Workspace Layout */}
       <main className="flex-1 grid grid-cols-12 gap-4 p-4 overflow-hidden">
         {/* Left: Viewport Monitor (7 columns) */}
-        <section className="col-span-12 lg:col-span-7 h-full overflow-hidden">
+        <section className="col-span-12 md:col-span-7 h-full overflow-hidden">
           <ViewportMonitor
             session={activeSession}
             markers={actionMarkers}
@@ -253,35 +253,36 @@ export function App() {
         </section>
 
         {/* Right: Interaction Stream & Prompt Input (5 columns) */}
-        <section className="col-span-12 lg:col-span-5 h-full flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-          <div className="h-11 px-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between select-none">
-            <span className="text-xs font-semibold text-slate-200">{t('stream.title')}</span>
+        <section className="col-span-12 md:col-span-5 h-full flex flex-col bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="h-11 px-4 bg-slate-950/80 border-b border-slate-800 flex items-center justify-between select-none shrink-0">
+            <span className="text-xs font-semibold text-slate-200 whitespace-nowrap">{t('stream.title')}</span>
             {activeSession && (
-              <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded font-mono">
+              <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded font-mono whitespace-nowrap shrink-0">
                 {t('header.mode')}: {activeSession.mode}
               </span>
             )}
           </div>
 
           {/* Chat Event List */}
-          <ChatStream events={events} isExecuting={isExecuting} />
+          <ChatStream events={events} isExecuting={isExecuting && !pendingApproval} />
 
-          {/* Prompt Input Dock */}
-          <PromptInput
-            disabled={!activeSessionId}
-            isExecuting={isExecuting}
-            onSubmit={(inst, steps) => sendInstruction(inst, steps)}
-            onAbort={abortExecution}
-          />
+          {/* Docked Approval Gate OR Prompt Input Dock */}
+          {pendingApproval ? (
+            <ApprovalGate
+              pending={pendingApproval}
+              onApprove={() => submitApproval(true)}
+              onReject={(reason) => submitApproval(false, reason)}
+            />
+          ) : (
+            <PromptInput
+              disabled={!activeSessionId}
+              isExecuting={isExecuting}
+              onSubmit={(inst, steps) => sendInstruction(inst, steps)}
+              onAbort={abortExecution}
+            />
+          )}
         </section>
       </main>
-
-      {/* 3. Floating Approval Gate */}
-      <ApprovalGate
-        pending={pendingApproval}
-        onApprove={() => submitApproval(true)}
-        onReject={(reason) => submitApproval(false, reason)}
-      />
 
       {/* 4. Modals */}
       <NewSessionModal

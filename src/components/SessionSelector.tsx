@@ -181,7 +181,7 @@ export const SessionSelector: React.FC<SessionSelectorProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer shadow-sm border max-w-[280px] sm:max-w-[340px] truncate ${
+        className={`flex items-center gap-2 px-2.5 lg:px-3 py-1.5 rounded-lg text-xs font-medium transition cursor-pointer shadow-sm border max-w-[200px] lg:max-w-[260px] xl:max-w-[340px] truncate ${
           isOpen
             ? 'bg-slate-900 border-indigo-500 text-white shadow-indigo-500/20'
             : 'bg-slate-950/80 hover:bg-slate-900 text-slate-200 border-slate-700/80 hover:border-slate-600'

@@ -151,10 +151,10 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                 {t('newSession.selectTarget')}
               </label>
               <div className="flex items-center gap-2">
-                <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-xs">
+                <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-800 text-xs shrink-0">
                   <button
                     onClick={() => setFilterType('all')}
-                    className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md whitespace-nowrap shrink-0 transition cursor-pointer ${
                       filterType === 'all'
                         ? 'bg-slate-800 text-white font-medium'
                         : 'text-slate-400 hover:text-slate-200'
@@ -164,7 +164,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                   </button>
                   <button
                     onClick={() => setFilterType('window')}
-                    className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md whitespace-nowrap shrink-0 transition cursor-pointer ${
                       filterType === 'window'
                         ? 'bg-slate-800 text-white font-medium'
                         : 'text-slate-400 hover:text-slate-200'
@@ -174,7 +174,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
                   </button>
                   <button
                     onClick={() => setFilterType('display')}
-                    className={`px-2.5 py-1 rounded-md transition cursor-pointer ${
+                    className={`px-2.5 py-1 rounded-md whitespace-nowrap shrink-0 transition cursor-pointer ${
                       filterType === 'display'
                         ? 'bg-slate-800 text-white font-medium'
                         : 'text-slate-400 hover:text-slate-200'

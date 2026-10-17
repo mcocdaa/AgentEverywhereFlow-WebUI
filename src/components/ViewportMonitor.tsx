@@ -113,11 +113,11 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
           )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           {/* Coordinates HUD */}
           {hoverCoords && (
-            <div className="flex items-center gap-1.5 text-[11px] font-mono bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded shadow-sm">
-              <Crosshair className="w-3 h-3" />
+            <div className="flex items-center gap-1.5 text-[11px] font-mono bg-indigo-950/60 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded shadow-sm whitespace-nowrap shrink-0">
+              <Crosshair className="w-3 h-3 shrink-0" />
               <span>
                 X: {hoverCoords.x}, Y: {hoverCoords.y}
               </span>
@@ -125,12 +125,12 @@ export const ViewportMonitor: React.FC<ViewportMonitorProps> = ({
           )}
 
           {/* Auto Refresh Toggle */}
-          <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer whitespace-nowrap shrink-0">
             <input
               type="checkbox"
               checked={autoRefresh}
               onChange={(e) => setAutoRefresh(e.target.checked)}
-              className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 w-3 h-3"
+              className="rounded bg-slate-800 border-slate-700 text-indigo-600 focus:ring-0 w-3 h-3 shrink-0"
             />
             <span className="text-[11px]">{t('viewport.autoRefresh')}</span>
           </label>

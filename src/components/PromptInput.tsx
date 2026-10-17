@@ -39,9 +39,9 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   }
 
   return (
-    <div className="border-t border-slate-800 bg-slate-900/90 p-4 select-none">
+    <div className="border-t border-slate-800 bg-slate-900/90 p-3 select-none shrink-0">
       {/* Quick Prompt Chips */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2.5 mb-2 scrollbar-none">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-1.5 scrollbar-none">
         <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
         {quickPrompts.map((prompt, idx) => (
           <button

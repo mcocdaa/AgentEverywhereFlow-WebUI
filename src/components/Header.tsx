@@ -148,9 +148,9 @@ export const Header: React.FC<HeaderProps> = ({
 
         <button
           onClick={onOpenNewSessionModal}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/30 transition active:scale-95 cursor-pointer shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm shadow-indigo-600/30 whitespace-nowrap transition active:scale-95 cursor-pointer shrink-0"
         >
-          <Plus className="w-3.5 h-3.5" />
+          <Plus className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden sm:inline">{t('header.newSession')}</span>
         </button>
 
@@ -175,7 +175,7 @@ export const Header: React.FC<HeaderProps> = ({
               ? t('header.permissionManualTooltip')
               : t('header.permissionAutoTooltip')
           }
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border whitespace-nowrap shrink-0 transition cursor-pointer ${
             permissionMode === 'manual'
               ? 'bg-amber-500/10 text-amber-300 border-amber-500/40 hover:bg-amber-500/20 shadow-sm shadow-amber-500/10'
               : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/20 shadow-sm shadow-emerald-500/10'
@@ -183,12 +183,12 @@ export const Header: React.FC<HeaderProps> = ({
         >
           {permissionMode === 'manual' ? (
             <>
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-400" />
+              <ShieldAlert className="w-3.5 h-3.5 text-amber-400 shrink-0" />
               <span>{t('header.permissionManual')}</span>
             </>
           ) : (
             <>
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
               <span>{t('header.permissionAuto')}</span>
             </>
           )}
@@ -198,9 +198,9 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           onClick={onOpenExportModal}
           disabled={!activeSession}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700/60 whitespace-nowrap shrink-0 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
         >
-          <Download className="w-3.5 h-3.5 text-slate-400" />
+          <Download className="w-3.5 h-3.5 text-slate-400 shrink-0" />
           <span className="hidden sm:inline">{t('header.export')}</span>
         </button>
       </div>

@@ -335,7 +335,7 @@ metadata:
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -356,53 +356,53 @@ metadata:
         </div>
 
         {/* Format Selector Tabs */}
-        <div className="px-6 pt-4 flex flex-wrap gap-2">
+        <div className="px-6 pt-4 flex items-center gap-2 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setFormat('python')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
               format === 'python'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
-            <FileCode className="w-3.5 h-3.5" />
+            <FileCode className="w-3.5 h-3.5 shrink-0" />
             <span>{t('export.tabPython')}</span>
           </button>
 
           <button
             onClick={() => setFormat('yaml')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
               format === 'yaml'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
-            <FileCode className="w-3.5 h-3.5" />
+            <FileCode className="w-3.5 h-3.5 shrink-0" />
             <span>{t('export.tabYaml')}</span>
           </button>
 
           <button
             onClick={() => setFormat('markdown')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
               format === 'markdown'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-3.5 h-3.5 shrink-0" />
             <span>{t('export.tabMarkdown')}</span>
           </button>
 
           <button
             onClick={() => setFormat('json')}
-            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
               format === 'json'
                 ? 'bg-indigo-600 text-white shadow-sm'
                 : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
-            <FileJson className="w-3.5 h-3.5" />
-            <span>JSON Trace (.json)</span>
+            <FileJson className="w-3.5 h-3.5 shrink-0" />
+            <span>{t('export.tabJson')}</span>
           </button>
         </div>
 
@@ -425,34 +425,34 @@ metadata:
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between flex-wrap gap-2">
-          <span className="text-[11px] text-slate-500 font-mono">
-            {events.length} session events recorded
+        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between gap-2">
+          <span className="text-[11px] text-slate-500 font-mono whitespace-nowrap shrink-0">
+            {t('export.eventsRecorded').replace('{count}', String(events.length))}
           </span>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => handleReplayViaApi(true)}
               disabled={replayStatus.loading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-300 hover:text-white bg-emerald-950/60 hover:bg-emerald-800/60 border border-emerald-500/30 transition cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-emerald-300 hover:text-white bg-emerald-950/60 hover:bg-emerald-800/60 border border-emerald-500/30 whitespace-nowrap shrink-0 transition cursor-pointer disabled:opacity-50"
             >
-              <Play className="w-3.5 h-3.5" />
-              <span>{replayStatus.loading ? 'Validating...' : '▶ Replay / Dry-Run via API'}</span>
+              <Play className="w-3.5 h-3.5 fill-current shrink-0" />
+              <span>{replayStatus.loading ? t('export.validating') : t('export.dryRunReplay')}</span>
             </button>
 
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 whitespace-nowrap shrink-0 transition cursor-pointer"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" /> : <Copy className="w-3.5 h-3.5 shrink-0" />}
               <span>{copied ? t('export.copied') : t('export.copy')}</span>
             </button>
 
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 transition cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/30 whitespace-nowrap shrink-0 transition cursor-pointer"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 shrink-0" />
               <span>{t('export.download')}</span>
             </button>
           </div>
