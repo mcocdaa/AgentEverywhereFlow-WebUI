@@ -25,7 +25,7 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
   onClose,
   onSessionCreated,
 }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [targets, setTargets] = useState<TargetInfo[]>([])
   const [selectedTargetId, setSelectedTargetId] = useState<string>('')
   const [filterType, setFilterType] = useState<'all' | 'window' | 'display'>('all')
@@ -71,11 +71,18 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
       setRefreshedNotice(true)
       setTimeout(() => setRefreshedNotice(false), 2000)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('newSession.fetchTargetsError'))
+      const rawMsg = err instanceof Error ? err.message : ''
+      const isGenericErr =
+        !rawMsg || /^(Failed to fetch|NetworkError|HTTP \d+|Load failed)/i.test(rawMsg)
+      setError(
+        language === 'zh' && isGenericErr
+          ? t('newSession.fetchTargetsError')
+          : rawMsg || t('newSession.fetchTargetsError')
+      )
     } finally {
       setLoading(false)
     }
-  }, [t])
+  }, [t, language])
 
   useEffect(() => {
     if (isOpen) {
@@ -106,7 +113,14 @@ export const NewSessionModal: React.FC<NewSessionModalProps> = ({
       onSessionCreated(session.session_id)
       onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : t('newSession.createSessionError'))
+      const rawMsg = err instanceof Error ? err.message : ''
+      const isGenericErr =
+        !rawMsg || /^(Failed to fetch|NetworkError|HTTP \d+|Load failed)/i.test(rawMsg)
+      setError(
+        language === 'zh' && isGenericErr
+          ? t('newSession.createSessionError')
+          : rawMsg || t('newSession.createSessionError')
+      )
     } finally {
       setSubmitting(false)
     }

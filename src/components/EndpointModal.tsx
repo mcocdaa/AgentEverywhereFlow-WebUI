@@ -14,7 +14,7 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
   onClose,
   onEndpointChanged,
 }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const currentBase = api.getBaseUrl()
   const [url, setUrl] = useState(currentBase || '')
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle')
@@ -39,7 +39,9 @@ export const EndpointModal: React.FC<EndpointModalProps> = ({
       )
     } catch (err: unknown) {
       setTestStatus('failed')
-      const msg = err instanceof Error ? err.message : String(err)
+      const rawMsg = err instanceof Error ? err.message : String(err)
+      const isGenericErr = /^(Failed to fetch|NetworkError|HTTP \d+|Load failed)/i.test(rawMsg)
+      const msg = language === 'zh' && isGenericErr ? t('header.offline') : rawMsg
       setTestMessage(t('endpoint.failed').replace('{msg}', msg))
     }
   }

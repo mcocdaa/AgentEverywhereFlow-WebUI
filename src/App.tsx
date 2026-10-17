@@ -258,7 +258,12 @@ export function App() {
             <span className="text-xs font-semibold text-slate-200 whitespace-nowrap">{t('stream.title')}</span>
             {activeSession && (
               <span className="text-[10px] text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded font-mono whitespace-nowrap shrink-0">
-                {t('header.mode')}: {activeSession.mode}
+                {t('header.mode')}:{' '}
+                {activeSession.mode === 'minimal'
+                  ? t('newSession.modeMinimalBadge')
+                  : activeSession.mode === 'guarded'
+                  ? t('newSession.modeGuardedBadge')
+                  : activeSession.mode}
               </span>
             )}
           </div>

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import {
   Download,
   Globe,
@@ -51,6 +51,10 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { t, language, toggleLanguage } = useLanguage()
 
+  useEffect(() => {
+    document.title = t('header.title')
+  }, [language, t])
+
   const statusDisplay = useMemo(() => {
     if (!backendOnline) {
       return {
@@ -101,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
                 AgentEverywhere<span className="text-indigo-400">Flow</span>
               </span>
               <span className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">
-                STUDIO
+                {t('newSession.studioBadge')}
               </span>
             </div>
             <p className="hidden xl:block text-[11px] text-slate-400">{t('header.subtitle')}</p>
@@ -130,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-950/60 hover:bg-slate-950 hover:text-white px-2 lg:px-2.5 py-1 rounded-full border border-slate-800 hover:border-slate-700 transition cursor-pointer shrink-0 font-medium whitespace-nowrap"
         >
           <Globe className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-          <span>{language === 'zh' ? t('header.langZh') : t('header.langEn')}</span>
+          <span>{language === 'zh' ? t('header.langEn') : t('header.langZh')}</span>
         </button>
       </div>
 

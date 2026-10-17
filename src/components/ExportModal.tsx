@@ -17,7 +17,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   events,
   onClose,
 }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [format, setFormat] = useState<'python' | 'yaml' | 'markdown' | 'json'>('python')
   const [copied, setCopied] = useState(false)
   const [content, setContent] = useState('')
@@ -212,6 +212,46 @@ metadata:
     }
 
     // Markdown format
+    if (language === 'zh') {
+      const modeZh =
+        session.mode === 'minimal'
+          ? '极简模式'
+          : session.mode === 'guarded'
+          ? '受控模式'
+          : session.mode
+      let md = `# AgentEverywhereFlow 执行审计报告\n\n`
+      md += `- **会话 ID**: \`${session.session_id}\`\n`
+      md += `- **目标窗口**: ${session.target.title} (${session.target.rect.width}×${session.target.rect.height})\n`
+      md += `- **执行模式**: \`${modeZh}\`\n`
+      md += `- **总轮次**: ${session.turn_count}\n`
+      md += `- **总步数**: ${session.total_steps}\n`
+      md += `- **导出时间**: ${nowLocale}\n\n`
+      md += `## 交互轨迹\n\n`
+
+      events.forEach((ev) => {
+        if (ev.event_type === 'turn_start') {
+          md += `### 🎯 操作员指令 (第 ${ev.payload.turn || 1} 轮)\n\n> ${ev.payload.instruction}\n\n`
+        } else if (ev.event_type === 'reasoning') {
+          md += `#### 🧠 智能体推理 (步骤 ${ev.step})\n\n${ev.payload.thinking}\n\n`
+        } else if (ev.event_type === 'action_proposed') {
+          const { code, action, params } = extractActionDetails(ev)
+          md += `#### ⚡ 提议动作\n\n\`\`\`python\n${
+            code || `${action || 'action'}(${JSON.stringify(params || {})})`
+          }\n\`\`\`\n\n`
+        } else if (ev.event_type === 'action_executed') {
+          md += `- **执行结果**: \`${
+            ev.payload.rejected ? '已拒绝' : ev.payload.success ? '成功' : '失败'
+          }\`\n`
+          if (ev.payload.output) md += `  \`\`\`\n  ${ev.payload.output}\n  \`\`\`\n`
+          md += `\n`
+        } else if (ev.event_type === 'task_completed') {
+          md += `### ✅ 任务完成\n\n${ev.payload.summary}\n\n---\n\n`
+        }
+      })
+
+      return md
+    }
+
     let md = `# AgentEverywhereFlow Execution Audit Report\n\n`
     md += `- **Session ID**: \`${session.session_id}\`\n`
     md += `- **Target Window**: ${session.target.title} (${session.target.rect.width}×${session.target.rect.height})\n`
@@ -243,7 +283,7 @@ metadata:
     })
 
     return md
-  }, [session, events])
+  }, [session, events, language])
 
   useEffect(() => {
     if (!isOpen || !session) return
@@ -251,7 +291,7 @@ metadata:
     const fallback = buildContent(format)
     setContent(fallback)
 
-    if (format === 'python' || format === 'yaml' || format === 'markdown') {
+    if (format === 'python' || format === 'yaml' || (format === 'markdown' && language === 'en')) {
       api
         .exportSession(session.session_id, format)
         .then((res) => {
@@ -267,7 +307,7 @@ metadata:
     return () => {
       cancelled = true
     }
-  }, [isOpen, format, session, buildContent])
+  }, [isOpen, format, session, buildContent, language])
 
   if (!isOpen || !session) return null
 
@@ -325,10 +365,16 @@ metadata:
             : `${t('export.workflowStatus').replace('{status}', res.status)}${res.error ? ` (${res.error})` : ''}`,
       })
     } catch (err) {
+      const rawMsg = err instanceof Error ? err.message : ''
+      const isGenericErr =
+        !rawMsg || /^(Failed to fetch|NetworkError|HTTP \d+|Load failed)/i.test(rawMsg)
       setReplayStatus({
         loading: false,
         ok: false,
-        message: err instanceof Error ? err.message : t('export.replayFailed'),
+        message:
+          language === 'zh' && isGenericErr
+            ? t('export.error')
+            : rawMsg || t('export.error'),
       })
     }
   }

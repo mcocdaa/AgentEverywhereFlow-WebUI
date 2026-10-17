@@ -25,7 +25,9 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     localStorage.setItem('aef_lang', language)
-    document.documentElement.lang = language
+    document.documentElement.lang = language === 'zh' ? 'zh-CN' : 'en'
+    const dict = translations[language] || translations.en
+    document.title = dict['header.title']
   }, [language])
 
   const setLanguage = (lang: Language) => {
