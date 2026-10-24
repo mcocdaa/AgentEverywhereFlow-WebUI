@@ -425,6 +425,7 @@ const EVENT_TEXT_PAIRS: ReadonlyArray<[string, string]> = [
   ['Cell D7 Focused', '已聚焦单元格 D7'],
   ['Formula Injected', '已注入公式'],
   ['Evaluated: 131978', '计算结果: 131978'],
+  ['Execution aborted by operator.', '操作员已中止执行。'],
 ]
 
 const EVENT_EN_TO_ZH_MAP: Record<string, string> = Object.fromEntries(EVENT_TEXT_PAIRS)

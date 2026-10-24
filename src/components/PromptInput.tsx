@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ArrowUp, Sparkles, Square } from 'lucide-react'
 import { useLanguage } from '../i18n/LanguageContext'
+import { translations } from '../i18n/translations'
 
 interface PromptInputProps {
   disabled: boolean
@@ -15,9 +16,22 @@ export const PromptInput: React.FC<PromptInputProps> = ({
   onSubmit,
   onAbort,
 }) => {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [text, setText] = useState('')
   const [maxSteps, setMaxSteps] = useState(50)
+
+  useEffect(() => {
+    setText((prev) => {
+      const keys = ['prompt.quick1', 'prompt.quick2', 'prompt.quick3'] as const
+      const otherLang = language === 'zh' ? 'en' : 'zh'
+      for (const key of keys) {
+        if (prev === translations[otherLang][key]) {
+          return translations[language][key]
+        }
+      }
+      return prev
+    })
+  }, [language])
 
   const quickPrompts = [
     t('prompt.quick1'),

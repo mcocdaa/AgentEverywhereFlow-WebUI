@@ -306,7 +306,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ sessionId, events, isExe
                     {error && (
                       <div className="font-mono text-[10px] text-rose-300 bg-rose-950/40 p-2 rounded-lg border border-rose-500/30 whitespace-pre-wrap leading-snug">
                         <div className="text-[9px] text-rose-400 font-bold mb-0.5">{t('stream.errorTrace')}</div>
-                        {error}
+                        {formatEventText(error, language)}
                       </div>
                     )}
                   </div>
@@ -370,7 +370,10 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ sessionId, events, isExe
             }
 
             case 'aborted': {
-              const msg = (ev.payload.message as string) || t('stream.abortedDefault')
+              const msg = formatEventText(
+                (ev.payload.message as string) || t('stream.abortedDefault'),
+                language
+              )
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
                   <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30 mt-0.5">
@@ -389,7 +392,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ sessionId, events, isExe
             }
 
             case 'error': {
-              const errorMsg = ev.payload.error as string
+              const errorMsg = formatEventText(ev.payload.error as string, language)
               return (
                 <div key={key} className="flex gap-3 items-start animate-in fade-in duration-150">
                   <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/30 mt-0.5">
