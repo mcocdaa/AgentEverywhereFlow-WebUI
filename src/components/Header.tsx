@@ -104,7 +104,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="font-bold text-sm lg:text-base tracking-tight text-white whitespace-nowrap">
                 AgentEverywhere<span className="text-indigo-400">Flow</span>
               </span>
-              <span className="hidden lg:inline-block px-1.5 py-0.5 text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">
+              <span className="hidden xl:inline-block px-1.5 py-0.5 text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">
                 {t('newSession.studioBadge')}
               </span>
             </div>
