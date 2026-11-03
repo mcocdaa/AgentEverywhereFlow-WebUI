@@ -128,7 +128,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ sessionId, events, isExe
                       <span className="text-[10px] font-semibold text-indigo-200 whitespace-nowrap shrink-0">{t('stream.operator')}</span>
                       {targetTitle && (
                         <span className="text-[9px] font-medium bg-indigo-950/60 text-indigo-200 px-1.5 py-0.5 rounded border border-indigo-400/30 truncate max-w-[160px] whitespace-nowrap shrink-0">
-                          🎯 {targetTitle}
+                          {targetTitle}
                         </span>
                       )}
                     </div>
@@ -211,7 +211,7 @@ export const ChatStream: React.FC<ChatStreamProps> = ({ sessionId, events, isExe
                     <div className="px-2.5 lg:px-3 py-1 lg:py-1.5 bg-amber-950/20 flex items-center justify-between gap-2 border-b border-amber-500/20">
                       <div className="flex items-center gap-1.5 text-[11px] font-mono text-amber-300 font-semibold min-w-0">
                         <Play className="w-3 h-3 text-amber-400 shrink-0" />
-                        <span className="truncate">⚡ {code ? t('stream.executingCodeAct') : `${t('stream.action')}: ${action}`}</span>
+                        <span className="truncate">{code ? t('stream.executingCodeAct') : `${t('stream.action')}: ${action}`}</span>
                       </div>
                       <span className="text-[10px] text-amber-400/80 font-mono whitespace-nowrap shrink-0">{t('stream.step')} {ev.step}</span>
                     </div>

@@ -129,12 +129,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Language Switcher */}
         <button
+          data-action="toggle-locale"
           onClick={toggleLanguage}
           title={t('header.language')}
           className="flex items-center gap-1.5 text-xs text-slate-300 bg-slate-950/60 hover:bg-slate-950 hover:text-white px-2 lg:px-2.5 py-1 rounded-full border border-slate-800 hover:border-slate-700 transition cursor-pointer shrink-0 font-medium whitespace-nowrap"
         >
           <Globe className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-          <span>{language === 'zh' ? t('header.langEn') : t('header.langZh')}</span>
+          <span className="locale-toggle-badge">{language === 'zh' ? t('header.langEn') : t('header.langZh')}</span>
         </button>
       </div>
 

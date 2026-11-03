@@ -3,18 +3,17 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "cron"
+      cronjob: "0 2 1 * *"
+      timezone: "Asia/Shanghai"
+    cooldown:
+      default-days: 7
+      semver-major-days: 14
+      semver-minor-days: 7
+      semver-patch-days: 3
     open-pull-requests-limit: 10
     groups:
-      dev-dependencies:
-        patterns:
-          - "@types/*"
-          - "typescript"
-          - "oxlint"
-          - "vite"
-          - "@vitejs/*"
-          - "tailwindcss"
-          - "@tailwindcss/*"
+      npm-minor-patch:
         update-types:
           - "minor"
           - "patch"
@@ -22,5 +21,16 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "cron"
+      cronjob: "0 2 1 * *"
+      timezone: "Asia/Shanghai"
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

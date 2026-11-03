@@ -277,12 +277,12 @@ metadata:
 
       events.forEach((ev) => {
         if (ev.event_type === 'turn_start') {
-          md += `### 🎯 操作员指令 (第 ${ev.payload.turn || 1} 轮)\n\n> ${formatEventText(ev.payload.instruction as string, language)}\n\n`
+          md += `### 操作员指令 (第 ${ev.payload.turn || 1} 轮)\n\n> ${formatEventText(ev.payload.instruction as string, language)}\n\n`
         } else if (ev.event_type === 'reasoning') {
-          md += `#### 🧠 智能体推理 (步骤 ${ev.step})\n\n${formatEventText((ev.payload.thinking || ev.payload.content) as string, language)}\n\n`
+          md += `#### 智能体推理 (步骤 ${ev.step})\n\n${formatEventText((ev.payload.thinking || ev.payload.content) as string, language)}\n\n`
         } else if (ev.event_type === 'action_proposed') {
           const { code, action, params } = extractActionDetails(ev)
-          md += `#### ⚡ 提议动作\n\n\`\`\`python\n${
+          md += `#### 提议动作\n\n\`\`\`python\n${
             code || `${action || 'action'}(${JSON.stringify(params || {})})`
           }\n\`\`\`\n\n`
         } else if (ev.event_type === 'action_executed') {
@@ -297,7 +297,7 @@ metadata:
           }
           md += `\n`
         } else if (ev.event_type === 'task_completed') {
-          md += `### ✅ 任务完成\n\n${formatEventText(ev.payload.summary as string, language)}\n\n---\n\n`
+          md += `### 任务完成\n\n${formatEventText(ev.payload.summary as string, language)}\n\n---\n\n`
         }
       })
 
@@ -315,12 +315,12 @@ metadata:
 
     events.forEach((ev) => {
       if (ev.event_type === 'turn_start') {
-        md += `### 🎯 Operator Instruction (Turn ${ev.payload.turn || 1})\n\n> ${formatEventText(ev.payload.instruction as string, language)}\n\n`
+        md += `### Operator Instruction (Turn ${ev.payload.turn || 1})\n\n> ${formatEventText(ev.payload.instruction as string, language)}\n\n`
       } else if (ev.event_type === 'reasoning') {
-        md += `#### 🧠 Reasoning (Step ${ev.step})\n\n${formatEventText((ev.payload.thinking || ev.payload.content) as string, language)}\n\n`
+        md += `#### Agent Reasoning (Step ${ev.step})\n\n${formatEventText((ev.payload.thinking || ev.payload.content) as string, language)}\n\n`
       } else if (ev.event_type === 'action_proposed') {
         const { code, action, params } = extractActionDetails(ev)
-        md += `#### ⚡ Proposed Action\n\n\`\`\`python\n${
+        md += `#### Proposed Action\n\n\`\`\`python\n${
           code || `${action || 'action'}(${JSON.stringify(params || {})})`
         }\n\`\`\`\n\n`
       } else if (ev.event_type === 'action_executed') {
@@ -335,7 +335,7 @@ metadata:
         }
         md += `\n`
       } else if (ev.event_type === 'task_completed') {
-        md += `### ✅ Task Completed\n\n${formatEventText(ev.payload.summary as string, language)}\n\n---\n\n`
+        md += `### Task Completed\n\n${formatEventText(ev.payload.summary as string, language)}\n\n---\n\n`
       }
     })
 
